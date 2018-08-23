@@ -1,0 +1,329 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file c:/Users/neosloth/.emacs.d/init.org
+
+
+* Currently disabled
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-08-22 Wed 17:27
+  :ARCHIVE_FILE: ~/.emacs.d/init.org
+  :ARCHIVE_OLPATH: Custom Packages
+  :ARCHIVE_CATEGORY: init
+  :END:
+** Relative Line Numbers
+Relative line numbers. Currently disabled, because having them seems a bit redundant with vim easymotions.
+#+BEGIN_SRC emacs-lisp
+;; Relative line package
+(use-package nlinum-relative
+  :commands nlinum-relative-mode
+  :disabled t
+  :init
+  (progn
+    (setq nlinum-relative-redisplay-delay 0)
+    (setq nlinum-relative-current-symbol "")
+    (setq nlinum-relative-offset 0)
+    (add-hook 'prog-mode-hook 'nlinum-relative-mode))
+  :config
+  (progn
+    (nlinum-relative-setup-evil)))
+#+END_SRC
+** notmuch
+Currently using gnus for my email.
+#+BEGIN_SRC emacs-lisp
+(unless t
+  (autoload 'notmuch "notmuch" "notmuch mail" t)
+  (add-hook 'notmuch-hello-mode 'evil-emacs-state)
+  (add-hook 'notmuch-message-mode 'evil-emacs-state)
+  (add-hook 'notmuch-search-mode 'evil-emacs-state))
+#+END_SRC
+** Elfeed
+#+BEGIN_SRC emacs-lisp
+(use-package elfeed
+  :commands elfeed
+  :bind (("C-c e" . elfeed))
+  :disabled t
+  :config
+  (progn
+    ;; Disable evil in all the elfeed panes
+    (add-to-list 'evil-emacs-state-modes 'elfeed-show-mode)
+    (add-to-list 'evil-emacs-state-modes 'elfeed-search-mode)
+    (elfeed-set-max-connections 64)
+    (elfeed-load-opml "~/Sync/Misc/subscriptions.opml")
+
+    (defun elfeed-mark-all-as-read ()
+      (interactive)
+      (mark-whole-buffer)
+      (elfeed-search-untag-all-unread))
+    (define-key elfeed-search-mode-map (kbd "c") 'elfeed-mark-all-as-read)))
+#+END_SRC
+
+Archived entries from file c:/Users/neosloth/.emacs.d/init.org
+
+
+* Python
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-08-22 Wed 17:29
+  :ARCHIVE_FILE: ~/.emacs.d/init.org
+  :ARCHIVE_OLPATH: Programming Modes
+  :ARCHIVE_CATEGORY: init
+  :END:
+I'm gonna try to use LSP instead
+** Elpy
+#+BEGIN_SRC emacs-lisp
+(use-package elpy
+  :defer t
+  :disabled t
+  :init
+  (with-eval-after-load 'python (elpy-enable))
+  :config
+  (progn
+    (add-hook 'elpy-mode-hook (lambda () (highlight-indentation-mode -1)))))
+#+END_SRC
+** Company-Jedi
+#+BEGIN_SRC emacs-lisp
+(use-package company-jedi
+  :mode (("\\.py$" . python-mode))
+  :disabled t
+  :config
+  (progn
+    (add-hook 'python-mode-hook
+              (lambda ()
+                (set (make-local-variable 'company-backends) '(company-jedi))))))
+#+END_SRC
+
+Archived entries from file c:/Users/neosloth/.emacs.d/init.org
+
+
+* Lua
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-08-22 Wed 17:29
+  :ARCHIVE_FILE: ~/.emacs.d/init.org
+  :ARCHIVE_OLPATH: Programming Modes
+  :ARCHIVE_CATEGORY: init
+  :END:
+#+BEGIN_SRC emacs-lisp
+(use-package lua-mode
+  :mode (("\\.lua" . lua-mode)))
+#+END_SRC
+** Company-lua
+#+BEGIN_SRC emacs-lisp
+(use-package company-lua
+  :mode (("\\.lua" . lua-mode))
+  :config
+  (progn
+    (add-hook 'lua-mode-hook (lambda()
+                               (setq-local company-backends '(company-lua))))))
+#+END_SRC
+** Flycheck-lua
+#+BEGIN_SRC emacs-lisp
+(use-package flymake-lua
+  :mode (("\\.lua" . lua-mode)))
+#+END_SRC
+
+Archived entries from file c:/Users/neosloth/.emacs.d/init.org
+
+
+* Disabled
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-08-22 Wed 17:29
+  :ARCHIVE_FILE: ~/.emacs.d/init.org
+  :ARCHIVE_OLPATH: Org Mode
+  :ARCHIVE_CATEGORY: init
+  :END:
+** Org publish
+#+BEGIN_SRC emacs-lisp :tangle no
+(setq org-publish-project-alist
+          '(("org-blog"
+             ;;The directory containing our blog posts
+             :base-directory "~/Sync/Notes/blog/blog/"
+             ;; The directory where the final result will be copied to
+             :publishing-directory "~/Sync/Notes/blog/publish/"
+             :publishing-function org-html-publish-to-html
+             ;; Generate a list of all posts
+             :auto-sitemap t
+             :author "neosloth"
+             :sitemap-filename "index.org"
+             :sitemap-title "Neosloth's Blog"
+             :sitemap-file-entry-format "\"%t\" by %a on %d."
+             :sitemap-date-format "%B %dth, %Y"
+             :sitemap-sort-files t
+             :auto-preamble t
+             :html-head "<link rel=\"stylesheet\"
+                       href=\"./css/style.css\" type=\"text/css\"/>")
+            ("org-static"
+             :base-directory "~/Sync/Notes/blog/blog/"
+             :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf\\|ico"
+             :publishing-directory "~/Sync/Notes/blog/publish/"
+             :recursive t
+             :publishing-function org-publish-attachment)
+            ("org" :components ("org-blog" "org-static"))))
+#+END_SRC
+** org-caldav
+#+BEGIN_SRC emacs-lisp
+(use-package org-caldav
+  :after org
+  :disabled t
+  :config
+  (setq org-caldav-url "http://neosloth.duckdns.org/baikal/html/dav.php")
+  (setq org-caldav-calendar-id 1)
+  (setq org-caldav-inbox "~/Sync/Notes/dav.org")
+  (setq org-caldav-files '("~/Sync/Notes/appointments.org")))
+#+END_SRC
+
+** Org-noter
+#+BEGIN_SRC emacs-lisp
+(use-package org-noter
+  :disabled t
+  :after org)
+#+END_SRC
+** Ox-hugo
+#+BEGIN_SRC emacs-lisp
+(use-package ox-hugo
+  :disabled t
+  :after ox)
+#+END_SRC
+
+** Org-ref
+#+BEGIN_SRC emacs-lisp
+(use-package org-ref
+  :disabled t
+  :after org)
+#+END_SRC
+
+Archived entries from file c:/Users/neosloth/.emacs.d/init.org
+
+
+* Disabled :ARCHIVE:
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2018-08-22 Wed 17:30
+  :ARCHIVE_FILE: ~/.emacs.d/init.org
+  :ARCHIVE_CATEGORY: init
+  :END:
+** Gnus
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package gnus
+  :commands gnus
+  :disabled t
+  :config
+
+  ;; @see http://www.emacswiki.org/emacs/GnusGmail#toc1
+  (setq gnus-select-method '(nntp "news.gmane.org")) ;; if you read news groups
+
+  (defun my-gnus-group-list-subscribed-groups ()
+    "List all subscribed groups with or without un-read messages"
+    (interactive)
+    (gnus-group-list-all-groups 5))
+
+  (add-hook 'gnus-group-mode-hook
+            ;; list all the subscribed groups even they contain zero un-read messages
+            (lambda () (local-set-key "o" 'my-gnus-group-list-subscribed-groups )))
+
+  ;; ask encryption password once
+  (setq epa-file-cache-passphrase-for-symmetric-encryption t)
+
+  (setq gnus-thread-sort-functions
+        '(gnus-thread-sort-by-most-recent-date
+          (not gnus-thread-sort-by-number)))
+
+  (setq gnus-thread-hide-subtree t)
+  (setq user-mail-address "neosloth@disroot.org"
+        user-full-name "Stefan Kuznetsov")
+
+  (setq nnmail-expiry-wait 'immediate)
+
+  (setq gnus-select-method
+        '(nnimap "main"
+                 (nnimap-address "imap.gmail.com")
+                 (nnimap-server-port "imaps")
+                 (nnimap-stream ssl)))
+
+  (setq gnus-secondary-select-methods
+        '(
+          (nnimap "disroot"
+                  (nnimap-address "disroot.org")
+                  (nnimap-server-port "imaps")
+                  (nnimap-server-port 993))
+          (nnimap "official"
+                  (nnimap-address "imap.gmail.com")
+                  (nnimap-server-port "imaps")
+                  (nnimap-stream ssl))
+          (nnimap "hotmail"
+                  (nnimap-address "outlook.office365.com")
+                  (nnimap-server-port "imaps")
+                  (nnimap-server-port 993))))
+
+  (setq gnus-posting-styles
+        '(((header "to" "superstepag@gmail.com")
+           (address "superstepag@gmail.com"))
+          ((header "to" "stepan.s.kuznetsov@gmail.com")
+           (address "stepan.s.kuznetsov@gmail.com"))
+          ((header "cc" "superstepag@gmail.com")
+           (address "superstepag@gmail.com"))
+          ((header "cc" "stepan.s.kuznetsov@gmail.com")
+           (address "stepan.s.kuznetsov@gmail.com"))))
+
+  ;;send mail config
+  (setq message-send-mail-function 'smtpmail-send-it
+        smtpmail-smtp-server "disroot.org"
+        smtpmail-smtp-service 587
+        gnus-ignored-newsgroups "^to\\.\\|^[0-9. ]+\\( \\|$\\)\\|^[\"]\"[#'()]")
+
+  (defun my-message-mode-setup ()
+    "Turn on auto fill when composing emails."
+    (flyspell-mode t)
+    (setq fill-column 72)
+    (turn-on-auto-fill))
+
+  (add-hook 'message-mode-hook 'my-message-mode-setup)
+
+  (defun exit-gnus-on-exit ()
+    (if (and (fboundp 'gnus-group-exit)
+             (gnus-alive-p))
+        (with-current-buffer (get-buffer "*Group*")
+          (let (gnus-interactive-exit)
+            (gnus-group-exit)))))
+
+  (add-hook 'kill-emacs-hook 'exit-gnus-on-exit))
+#+END_SRC
+** rcirc
+#+BEGIN_SRC emacs-lisp :tangle no
+(use-package rcirc
+  :commands irc
+  :bind ("C-c i" . irc)
+  :ensure rcirc-styles
+  :disabled t
+  :config
+  (progn
+    ;;ircauth contains nickserv passwords
+    (when
+        (file-readable-p "~/.emacs.d/.ircauth.el.gpg")
+      (load "~/.emacs.d/.ircauth.el.gpg"))
+
+    (add-hook 'rcirc-mode-hook (lambda ()
+                                 (flyspell-mode 1)
+                                 (visual-line-mode)
+                                 ;; Scroll to bottom
+                                 (set (make-local-variable 'scroll-conservatively) 8192)))
+
+    (setq rcirc-default-nick "neosloth")
+    (set-face-foreground 'rcirc-my-nick "yellow" nil)
+
+    (setq rcirc-server-alist
+          '(("irc.freenode.net" :port 6697 :encryption tls :channels ("#emacs"))
+            ("irc.lainchan.org" :port 6697 :encryption tls :channels ("#lainchan" "#xonotic"))))
+
+    (setq rcirc-fill-flag nil)))
+#+END_SRC
+** Feebleline
+#+BEGIN_SRC emacs-lisp
+(use-package feebleline
+  :disabled t
+  :config
+  (setq feebleline-mode-line-text
+        '(("%s"    ((if (buffer-file-name) (buffer-file-name)
+                      (buffer-name))) (face feebleline-bufname-face))
+          ("%s"       ((if (and (buffer-file-name) (buffer-modified-p)) "*" "" ))
+           (face feebleline-asterisk-face))))
+  (feebleline-mode))
+#+END_SRC
