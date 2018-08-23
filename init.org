@@ -18,7 +18,7 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
                (expand-file-name (concat user-emacs-directory "init.org")))
     (let ((prog-mode-hook nil))
       (org-babel-tangle)
-      (byte-compile-file (concat user-emacs-directory "init.el"))
+      (concat user-emacs-directory "init.el")
       (load-file (expand-file-name (concat user-emacs-directory "init.el"))))))
 
 (add-hook 'after-save-hook 'tangle-init)
