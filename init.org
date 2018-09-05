@@ -276,6 +276,17 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package evil-collection
   :after evil
   :config (evil-collection-init))
+
+(use-package evil-snipe
+  :after evil
+  :config
+  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
+  (setq evil-snipe-scope 'visible)
+  (evil-snipe-mode +1))
+
+(use-package evil-commentary
+  :after evil
+  :config (evil-commentary-mode))
 #+END_SRC
 
 *** Evil-cleverparens
@@ -420,7 +431,7 @@ Automatic indentation.
   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'slime-repl-mode))
 #+END_SRC
-**** Auto fill
+**** Auto fill comments
 #+BEGIN_SRC emacs-lisp
 (defun comment-auto-fill ()
   (setq-local comment-auto-fill-only-comments t)
@@ -444,7 +455,7 @@ Automatic indentation.
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
 ** LSP
-Dependend on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
+Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
 #+BEGIN_SRC emacs-lisp
 (use-package eglot
   :commands (eglot eglot-ensure)
@@ -541,13 +552,7 @@ Dependend on [[https://github.com/palantir/python-language-server][pyls]], [[htt
     (add-hook 'org-shiftdown-final-hook 'windmove-down)
     (add-hook 'org-shiftright-final-hook 'windmove-right)
 
-    (setq org-capture-templates
-          '(("t" "Todo" entry (file+headline org-todo-location "Tasks")
-             "* TODO %?\n  %i\n  %a")
-            ("c" "Clipboard" entry (file+headline org-todo-location "Links")
-             "* %?\n %x")
-            ("s" "Scheduled" entry (file+headline org-todo-location "Events")
-             "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n")))
+
 
     ;; Org-publish config
     (setq org-html-validation-link nil)
@@ -570,6 +575,23 @@ Dependend on [[https://github.com/palantir/python-language-server][pyls]], [[htt
      (lisp . t)
      (js . t)
      (restclient . t))))
+#+END_SRC
+** Org Capture
+#+BEGIN_SRC emacs-lisp
+(use-package org-capture
+  :ensure nil
+  :after org
+  :custom
+  (org-capture-templates
+   '(("t" "Todo" entry (file+headline org-todo-location "Tasks")
+      "* TODO %?\n  %i\n  %a")
+     ("p" "Clipboard" entry (file+headline org-todo-location "Links")
+      "* %?\n %x")
+     ("c" "Contact" entry (file+headline "~/Sync/Notes/contacts.org" "Contacts"),
+      my/org-contacts-template
+      :empty-lines 1 )
+     ("s" "Scheduled" entry (file+headline org-todo-location "Events")
+      "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
 #+END_SRC
 ** Interleave
 #+BEGIN_SRC emacs-lisp
