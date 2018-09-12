@@ -8,6 +8,7 @@
 ;; Reset it to the default after initialization
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
 #+END_SRC
+
 ** Automatic tangling
 Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 #+BEGIN_SRC emacs-lisp
@@ -32,12 +33,12 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
   (require 'package)
   (add-to-list
    'package-archives
-   '("melpa" . "http://melpa.org/packages/")
-   t)
+   '("melpa" . "http://melpa.org/packages/") t)
 
   (add-to-list
    'package-archives
    '("org" . "http://orgmode.org/elpa/") t)
+
   (package-initialize))
 
 (unless package-archive-contents
@@ -78,8 +79,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
-;; Delete all the trailing whitespaces every time the file is saved
-(push 'delete-trailing-whitespace before-save-hook)
 ;;Show current buffer name
 (setq frame-title-format "emacs - %b")
 ;;Hide the toolbar scroll bar and menubar
@@ -255,9 +254,8 @@ Moves the custom file into a temp file, effectively making it session local
 ** Evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil
-  :init (setq evil-want-integration nil)
+  :init (setq evil-want-keybinding nil)
   :config
-
   (evil-mode 1)
   ;;Disable evil in these modes
   (evil-set-initial-state 'erc-mode 'emacs)
@@ -277,13 +275,6 @@ Moves the custom file into a temp file, effectively making it session local
   :after evil
   :config (evil-collection-init))
 
-(use-package evil-snipe
-  :after evil
-  :config
-  (add-hook 'magit-mode-hook 'turn-off-evil-snipe-override-mode)
-  (setq evil-snipe-scope 'visible)
-  (evil-snipe-mode +1))
-
 (use-package evil-commentary
   :after evil
   :config (evil-commentary-mode))
@@ -298,10 +289,9 @@ Moves the custom file into a temp file, effectively making it session local
 *** Org-evil
 #+BEGIN_SRC emacs-lisp
 (use-package org-evil
-  :commands org-evil
+  :commands org-evil-mode
   :config
-  (progn
-    (add-hook 'org-mode-hook 'org-evil)))
+  (add-hook 'org-mode-hook 'org-evil-mode))
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
@@ -444,6 +434,12 @@ Automatic indentation.
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
 #+END_SRC
+*** Whitespace
+#+BEGIN_SRC emacs-lisp
+(use-package ws-butler
+  :commands ws-butler-mode
+  :init (add-hook 'prog-mode-hook 'ws-butler-mode))
+#+END_SRC
 *** Misc
 #+BEGIN_SRC emacs-lisp
 (defun neosloth-prog-mode-hook ()
@@ -453,6 +449,11 @@ Automatic indentation.
   (electric-pair-mode))
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
+#+END_SRC
+** TODO Guess foreign indentation
+#+BEGIN_SRC emacs-lisp
+(use-package dtrt-indent
+  :disabled t)
 #+END_SRC
 ** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
