@@ -71,6 +71,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-set-key (kbd "C-c c") 'quick-calc)
 
 (global-set-key (kbd "C-c a") 'org-agenda-list)
+
 (global-set-key (kbd "C-c o") 'org-capture)
 
 (global-set-key (kbd "C-c v") 'visual-line-mode)
@@ -460,10 +461,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package eglot
   :commands (eglot eglot-ensure)
-  :init
-  (add-hook 'python-mode-hook 'eglot-ensure)
-  (add-hook 'js2-mode-hook 'eglot-ensure)
-  (add-hook 'mhtml-mode 'eglot-ensure)
+  :hook ((python-mode mhtml-mode js2-mode) . eglot-ensure)
   :config
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (define-key eglot-mode-map (kbd "C-c h") 'eglot-help-at-point))
@@ -573,6 +571,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
    'org-babel-load-languages
    '((python . t)
      (java . t)
+     (calc . t)
      (lisp . t)
      (js . t)
      (restclient . t))))
