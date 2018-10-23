@@ -308,14 +308,6 @@ Moves the custom file into a temp file, effectively making it session local
    company-minimum-prefix-length 2
    company-tooltip-limit 20))
 #+END_SRC
-** Flycheck
-Redundant(?) in 26.1
-#+BEGIN_SRC emacs-lisp
-(use-package flycheck
-  :disabled t
-  :defer 1
-  :hook (after-init . global-flycheck-mode))
-#+END_SRC
 ** Pdf-tools
 #+BEGIN_SRC emacs-lisp
 (unless (eq system-type 'windows-nt)
@@ -353,11 +345,6 @@ Redundant(?) in 26.1
     ;;Disable evil in mingus
     (add-hook 'mingus-browse-hook 'evil-emacs-state)
     (add-hook 'mingus-playlist-hooks 'evil-emacs-state)))
-#+END_SRC
-** Magit
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :commands magit-status)
 #+END_SRC
 ** Auctex
 #+BEGIN_SRC emacs-lisp
@@ -463,8 +450,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :commands (eglot eglot-ensure)
   :hook ((python-mode mhtml-mode js2-mode) . eglot-ensure)
   :config
-  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
-  (define-key eglot-mode-map (kbd "C-c h") 'eglot-help-at-point))
+  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio"))))
 #+END_SRC
 ** C-Mode
 *** Indentation
