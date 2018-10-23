@@ -327,3 +327,30 @@ Archived entries from file c:/Users/neosloth/.emacs.d/init.org
            (face feebleline-asterisk-face))))
   (feebleline-mode))
 #+END_SRC
+
+* Magit
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-23 Tue 00:48
+:ARCHIVE_FILE: ~/.emacs.d/init.org
+:ARCHIVE_OLPATH: Custom Packages
+:ARCHIVE_CATEGORY: init
+:END:
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :commands magit-status)
+#+END_SRC
+
+* Flycheck
+:PROPERTIES:
+:ARCHIVE_TIME: 2018-10-23 Tue 00:49
+:ARCHIVE_FILE: ~/.emacs.d/init.org
+:ARCHIVE_OLPATH: Custom Packages
+:ARCHIVE_CATEGORY: init
+:END:
+Redundant(?) in 26.1
+#+BEGIN_SRC emacs-lisp
+(use-package flycheck
+  :disabled t
+  :defer 1
+  :hook (after-init . global-flycheck-mode))
+#+END_SRC
