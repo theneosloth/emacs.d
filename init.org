@@ -345,14 +345,9 @@ Redundant(?) in 26.1
   :init
   (progn
     (global-set-key (kbd "C-c m") 'mingus-browse)
-    ;;Disable evil in mingus
+    ;; Disable evil in mingus
     (add-hook 'mingus-browse-hook 'evil-emacs-state)
     (add-hook 'mingus-playlist-hooks 'evil-emacs-state)))
-#+END_SRC
-** Magit
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :commands magit-status)
 #+END_SRC
 ** Auctex
 #+BEGIN_SRC emacs-lisp
@@ -385,14 +380,6 @@ Redundant(?) in 26.1
 (use-package writeroom-mode
   :commands writeroom-mode)
 #+END_SRC
-** Projectile
-#+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :commands projectile-mode
-  :config
-  (progn
-    (add-hook 'prog-mode-hook 'projectile-mode)))
-#+END_SRC
 ** Atomic Chrome
 Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText]]
 #+BEGIN_SRC emacs-lisp
@@ -403,6 +390,21 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
         '(("github\\.com" . gfm-mode)
           ("gitlab\\.com" . gfm-mode)
           ("reddit\\.com" . markdown-mode))))
+#+END_SRC
+** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :commands magit-status)
+#+END_SRC
+** Projectile
+Some package keeps pulling projectile in but I dont actually want to use it
+#+BEGIN_SRC emacs-lisp
+(use-package projectile
+  :commands projectile-mode
+  :disabled t
+  :config
+  (progn
+    (add-hook 'prog-mode-hook 'projectile-mode)))
 #+END_SRC
 * Programming Modes
 ** Language Independent Settings
@@ -614,7 +616,9 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   (setq org-caldav-url "https://posteo.de:8443/calendars/neosloth")
   (setq org-caldav-calendar-id "default")
   (setq org-caldav-inbox "~/Sync/Notes/caldav.org")
-  (setq org-caldav-files org-agenda-files))
+  (setq org-caldav-save-directory "~/Sync/Notes/")
+  (setq org-caldav-files org-agenda-files)
+  (add-to-list 'org-agenda-files org-caldav-inbox))
 #+END_SRC
 
 * ERC
@@ -664,6 +668,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Modeline
 #+BEGIN_SRC emacs-lisp
 (setq-default mode-line-format
-              '("%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification " " mode-line-position
-               " " mode-line-misc-info mode-line-end-spaces))
+              '("%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification "   " mode-line-position evil-mode-line-tag
+                (vc-mode vc-mode)
+                "  " mode-line-misc-info mode-line-end-spaces))
 #+END_SRC
