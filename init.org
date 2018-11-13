@@ -279,7 +279,9 @@ Moves the custom file into a temp file, effectively making it session local
 *** Evil-cleverparens
 #+BEGIN_SRC emacs-lisp
 (use-package evil-cleverparens
+  :commands evil-cleverparens-mode
   :config
+  (add-hook 'emacs-lisp-mode-hook 'evil-cleverparens-mode)
   (add-hook 'lisp-mode-hook 'evil-cleverparens-mode))
 #+END_SRC
 *** Org-evil
@@ -448,17 +450,12 @@ Automatic indentation.
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
-** TODO Guess foreign indentation
-#+BEGIN_SRC emacs-lisp
-(use-package dtrt-indent
-  :disabled t)
-#+END_SRC
 ** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
 #+BEGIN_SRC emacs-lisp
 (use-package eglot
   :commands (eglot eglot-ensure)
-  :hook ((python-mode mhtml-mode js2-mode css-mode) . eglot-ensure)
+  :hook ((python-mode js2-mode) . eglot-ensure)
   :config
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
@@ -485,6 +482,16 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :hook (web-mode html-mode sgml-mode mhtml-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
+#+END_SRC
+*** Validator 
+#+BEGIN_SRC emacs-lisp
+(defun html-nuchecker-hook ()
+  (set (make-local-variable 'compile-command)
+       (concat "java -jar " (expand-file-name "~/Sync/Misc/vnu.jar") " -Werror "
+               (shell-quote-argument (buffer-file-name)))))
+
+(add-hook 'mhtml-mode-hook 'html-nuchecker-hook)
+
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
