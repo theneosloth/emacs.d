@@ -225,6 +225,10 @@ Show all files with human readable sizes
 #+BEGIN_SRC emacs-lisp
 (setq auto-hscroll-mode 'current-line)
 #+END_SRC
+** Rgrep fix
+#+BEGIN_SRC emacs-lisp
+(setq find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe"))
+#+END_SRC
 ** Disable custom settings
 Moves the custom file into a temp file, effectively making it session local
 
@@ -485,13 +489,10 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+END_SRC
 *** Validator 
 #+BEGIN_SRC emacs-lisp
-(defun html-nuchecker-hook ()
-  (set (make-local-variable 'compile-command)
-       (concat "java -jar " (expand-file-name "~/Sync/Misc/vnu.jar") " -Werror "
-               (shell-quote-argument (buffer-file-name)))))
-
-(add-hook 'mhtml-mode-hook 'html-nuchecker-hook)
-
+(use-package flymake-vnu
+  :config
+  (flymake-vnu-setup)
+  (setq flymake-vnu-jar "~/Sync/Misc/vnu.jar"))
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
@@ -535,6 +536,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
           org-list-allow-alphabetical t
           ;; requires superscripts to use groups ({})
           org-use-sub-superscripts nil
+          org-export-with-toc nil
           org-notes-location "~/Sync/Notes/"
           org-todo-location (expand-file-name
                              (concat org-notes-location "agenda.org"))
@@ -657,7 +659,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   (setq erc-nick "neosloth")
   (setq erc-kill-buffer-on-part t)
   (setq erc-autojoin-channels-alist
-        '((".*freenode.net" "#emacs")))
+        '((".*freenode.net" "#emacs" "#lisp")))
 
   (setq erc-interpret-mirc-color t)
 
