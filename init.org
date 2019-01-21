@@ -227,7 +227,8 @@ Show all files with human readable sizes
 #+END_SRC
 ** Rgrep fix
 #+BEGIN_SRC emacs-lisp
-(setq find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe"))
+(when (eq system-type 'windows-nt)
+  (setq find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe")))
 #+END_SRC
 ** Disable custom settings
 Moves the custom file into a temp file, effectively making it session local
@@ -309,14 +310,6 @@ Moves the custom file into a temp file, effectively making it session local
    company-minimum-prefix-length 2
    company-tooltip-limit 20))
 #+END_SRC
-** Flycheck
-Redundant(?) in 26.1
-#+BEGIN_SRC emacs-lisp
-(use-package flycheck
-  :disabled t
-  :defer 1
-  :hook (after-init . global-flycheck-mode))
-#+END_SRC
 ** Pdf-tools
 #+BEGIN_SRC emacs-lisp
 (unless (eq system-type 'windows-nt)
@@ -370,7 +363,6 @@ Redundant(?) in 26.1
   (company-auctex-init))
 #+END_SRC
 
-
 ** Pass
 #+BEGIN_SRC emacs-lisp
 (use-package password-store
@@ -402,15 +394,12 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
 (use-package magit
   :commands magit-status)
 #+END_SRC
-** Projectile
-Some package keeps pulling projectile in but I dont actually want to use it
+** Langtool
 #+BEGIN_SRC emacs-lisp
-(use-package projectile
-  :commands projectile-mode
-  :disabled t
+(use-package langtool
+  :commands langtool-check
   :config
-  (progn
-    (add-hook 'prog-mode-hook 'projectile-mode)))
+  (setq langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
 #+END_SRC
 * Programming Modes
 ** Language Independent Settings
@@ -456,13 +445,15 @@ Automatic indentation.
 #+END_SRC
 ** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
+
 #+BEGIN_SRC emacs-lisp
-(use-package eglot
-  :commands (eglot eglot-ensure)
-  :hook ((python-mode js2-mode) . eglot-ensure)
-  :config
-  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
-  (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
+(use-package lsp-mode
+  :commands lsp
+  :hook (python-mode . lsp))
+
+(use-package lsp-ui)
+
+(use-package company-lsp)
 #+END_SRC
 ** C-Mode
 *** Indentation
@@ -607,11 +598,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
       :empty-lines 1 )
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
-#+END_SRC
-** Interleave
-#+BEGIN_SRC emacs-lisp
-(use-package interleave
-  :after org)
 #+END_SRC
 ** Ob-restclient
 #+BEGIN_SRC emacs-lisp
