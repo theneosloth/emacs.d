@@ -77,6 +77,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-set-key (kbd "C-c v") 'visual-line-mode)
 
 (global-set-key (kbd "<f8>") 'compile)
+(setq compilation-read-command nil)
 #+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
@@ -138,6 +139,9 @@ Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_o
     (eshell-send-input)))
 
 (global-set-key (kbd "C-c s") 'eshell-here)
+
+(defun eshell/x ()
+  (kill-buffer-and-window))
 #+END_SRC
 ** UTF-8 and Fonts
 #+BEGIN_SRC emacs-lisp
@@ -452,6 +456,13 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
 #+END_SRC
 
+** Java
+#+BEGIN_SRC emacs-lisp
+(add-hook 'java-mode-hook
+          (lambda()
+            (set (make-local-variable 'compile-command)
+                 (format "javac '%s'" (file-name-nondirectory buffer-file-name)))))
+#+END_SRC
 ** Javascript
 #+BEGIN_SRC emacs-lisp
 (use-package js2-mode
