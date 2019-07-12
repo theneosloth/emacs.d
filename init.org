@@ -77,7 +77,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-set-key (kbd "C-c v") 'visual-line-mode)
 
 (global-set-key (kbd "<f8>") 'compile)
-(setq compilation-read-command nil)
 #+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
@@ -459,14 +458,15 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Java
 #+BEGIN_SRC emacs-lisp
 (add-hook 'java-mode-hook
-          (lambda()
-            (set (make-local-variable 'compile-command)
-                 (format "javac '%s'" (file-name-nondirectory buffer-file-name)))))
-#+END_SRC
-** Javascript
-#+BEGIN_SRC emacs-lisp
-(use-package js2-mode
-  :mode (("\\.js$" . js2-mode)))
+          (lambda ()
+	    (set (make-local-variable 'compile-command)
+                 ;; emulate make's .c.o implicit pattern rule, but with
+                 ;; different defaults for the CC, CPPFLAGS, and CFLAGS
+                 ;; variables:
+                 ;; $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
+		 (let ((file (file-name-nondirectory buffer-file-name)))
+                   (format "javac %s" 
+                           file)))))
 #+END_SRC
 ** C-Mode
 *** Indentation
@@ -561,9 +561,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
     ;; Org-publish config
     (setq org-html-validation-link nil)
 
-    (unless (eq system-type 'windows-nt)
-      (add-hook 'org-mode-hook 'flyspell-mode))
-
+    (add-hook 'org-mode-hook 'flyspell-mode)
 
     ;; org-icalendar config
     (setq org-icalendar-combined-agenda-file "~/Sync/Notes/agenda.ics")
@@ -589,6 +587,28 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
      (lisp . t)
      (js . t)
      (restclient . t))))
+
+
+(setq org-publish-project-alist
+      '(
+        ("org-blog"
+         ;; Location of org files
+         :base-directory "~/Sync/Notes/website/content/"
+         :base-extension "org"
+
+         ;; Location of Jekyll files
+         :publishing-directory "~/Sync/publish/"
+         :recursive t
+         :publishing-function org-html-publish-to-html)
+
+        ("org-static"
+         :base-directory "~/Sync/Notes/website/static/"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a"
+         :publishing-directory "~/Sync/publish/"
+         :recursive t
+         :publishing-function org-publish-attachment)
+
+        ("website" :components ("org-blog" "org-static"))))
 #+END_SRC
 ** Org Capture
 #+BEGIN_SRC emacs-lisp
