@@ -215,10 +215,6 @@ Show all files with human readable sizes
 (setq dired-listing-switches "-alh")
 #+END_SRC
 
-** Tail log files
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'auto-mode-alist '("\\.log\\'" . auto-revert-mode))
-#+END_SRC
 ** Fix lag
 [[https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746][Source]]
 #+BEGIN_SRC
@@ -384,6 +380,7 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
 #+BEGIN_SRC emacs-lisp
 (use-package atomic-chrome
   :commands atomic-chrome-start-server
+  :disabled t
   :config
   (setq atomic-chrome-url-major-mode-alist
         '(("github\\.com" . gfm-mode)
@@ -444,12 +441,14 @@ Automatic indentation.
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
-** LSP
+** LAP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :commands lsp
-  :hook (python-mode . lsp))
+  :hook (python-mode . lsp)
+  :init
+  (setq lsp-enable-snippet nil))
 
 (use-package company-lsp :commands company-lsp)
 
@@ -460,10 +459,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 (add-hook 'java-mode-hook
           (lambda ()
 	    (set (make-local-variable 'compile-command)
-                 ;; emulate make's .c.o implicit pattern rule, but with
-                 ;; different defaults for the CC, CPPFLAGS, and CFLAGS
-                 ;; variables:
-                 ;; $(CC) -c -o $@ $(CPPFLAGS) $(CFLAGS) $<
 		 (let ((file (file-name-nondirectory buffer-file-name)))
                    (format "javac %s" 
                            file)))))
@@ -477,6 +472,14 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
         c-indent-level 4
         c-default-style "linux"))
 (add-hook 'c-mode-common-hook 'indent-c-mode-hook)
+
+(defun cpp-compile-command ()
+  (set (make-local-variable 'compile-command)
+       (let ((file (file-name-nondirectory buffer-file-name)))
+         (format "g++ -pedantic -Wall -Wextra %s"
+                 file))))
+
+(add-hook 'c-mode-common-hook 'cpp-compile-command)
 #+END_SRC
 ** Web/HTML
 #+BEGIN_SRC emacs-lisp
@@ -520,12 +523,14 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :defer t
   :diminish (org-indent-mode visual-line-mode flyspell-mode)
   :ensure org-bullets
+  :ensure htmlize
   :config
   (progn
     (setq org-src-preserve-indentation nil
           org-confirm-babel-evaluate nil
           org-return-follows-link t
           org-startup-with-inline-images t
+          org-descriptive-links nil      
           ;; Automatically preview latex fragments, and store the image files in the temp directory
           ;; org-startup-with-latex-preview t
           org-latex-preview-ltxpng-directory (expand-file-name
@@ -570,7 +575,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
     (setq org-icalendar-use-deadline '(event-if-todo event-if-not-todo))
 
     
-    
     (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
     (add-hook 'org-mode-hook 'org-bullets-mode)
     (add-hook 'org-mode-hook 'org-indent-mode)
@@ -586,29 +590,74 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
      (calc . t)
      (lisp . t)
      (js . t)
-     (restclient . t))))
+     (restclient . t)))
 
+
+
+#+END_SRC
+** Org Publish
+This is still inside the org use-package
+#+BEGIN_SRC emacs-lisp
+(defun neo-postamble (plist)
+  (format  
+   "<footer>
+    <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
+  </footer>" (current-time-string)))
+
+(setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
+
+;; Custom blog sitemap
+;; Taken from https://www.evenchick.com/blog/blogging-with-org-mode.html
+(defun neo-site-format-entry (entry style project)
+  (format "[[file:%s][%s]] --- %s"
+          entry
+          (org-publish-find-title entry project)
+          (format-time-string "%Y-%m-%d" (org-publish-find-date entry project))))
 
 (setq org-publish-project-alist
-      '(
-        ("org-blog"
+      `(("org-content"
+         :author "neosloth"
          ;; Location of org files
          :base-directory "~/Sync/Notes/website/content/"
          :base-extension "org"
-
-         ;; Location of Jekyll files
          :publishing-directory "~/Sync/publish/"
+         :auto-sitemap nil
+         :html-postamble neo-postamble
+         :html-html5-fancy t
+         :htmlized-source t
+         :recursive t
+         :publishing-function org-html-publish-to-html)
+
+        ("org-blog"
+         :author "neosloth"
+         ;; Location of org files
+         :base-directory "~/Sync/Notes/website/blog/"
+         :base-extension "org"
+         :publishing-directory "~/Sync/publish/blog/"
+         :html-postamble neo-postamble
+         :html-html5-fancy t
+         ;; Content has css links in the template
+         :html-head-extra ,neo-site-head-extra
+         :htmlized-source t
+         :auto-sitemap t
+         :sitemap-filename "index.org"
+         :sitemap-title "Articles"
+         :sitemap-style list
+         :sitemap-sort-files anti-chronologically
+         :sitemap-format-entry neo-site-format-entry
+         :html-link-up "./index.html"
+         :html-link-home "../index.html"
          :recursive t
          :publishing-function org-html-publish-to-html)
 
         ("org-static"
          :base-directory "~/Sync/Notes/website/static/"
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico"
          :publishing-directory "~/Sync/publish/"
          :recursive t
          :publishing-function org-publish-attachment)
 
-        ("website" :components ("org-blog" "org-static"))))
+        ("website" :components ("org-content" "org-static" "org-blog")))))
 #+END_SRC
 ** Org Capture
 #+BEGIN_SRC emacs-lisp
