@@ -31,13 +31,14 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 
 (when (>= emacs-major-version 24)
   (require 'package)
-  (add-to-list
-   'package-archives
-   '("melpa" . "http://melpa.org/packages/") t)
 
   (add-to-list
    'package-archives
    '("org" . "http://orgmode.org/elpa/") t)
+  
+  (add-to-list
+   'package-archives
+   '("melpa" . "http://melpa.org/packages/") t)
 
   (package-initialize))
 
@@ -285,13 +286,12 @@ Moves the custom file into a temp file, effectively making it session local
   :hook ((lisp-mode . evil-cleverparens-mode)
          (emacs-lisp-mode . evil-cleverparens-mode)))
 #+END_SRC
-
 *** Org-evil
 #+BEGIN_SRC emacs-lisp
-(use-package org-evil
-  :commands org-evil-mode
+(use-package evil-org
+  :commands evil-org-mode
   :config
-  (add-hook 'org-mode-hook 'org-evil-mode))
+  (add-hook 'org-mode-hook 'evil-org-mode))
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
@@ -301,6 +301,7 @@ Moves the custom file into a temp file, effectively making it session local
   :bind (("TAB" . company-indent-or-complete-common))
   :init (global-company-mode t)
   :config
+  (add-hook 'eshell-mode-hook (lambda () (company-mode -1)))
   ;; no delay no autocomplete
   (setq
    company-idle-delay 0
@@ -441,12 +442,13 @@ Automatic indentation.
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
-** LAP
+** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :commands lsp
-  :hook (python-mode . lsp)
+  :hook (python-mode js2-mode)
+
   :init
   (setq lsp-enable-snippet nil))
 
@@ -508,15 +510,29 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
     (setq markdown-command "multimarkdown")
     (add-hook 'markdown-mode-hook 'visual-line-mode)))
 #+END_SRC
-** Slime
+** Racket
+I'm only using this for SICP right now, ideally I'd set it up in a more general way.
+
+Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collections]]
+#+begin_src emacs-lisp
+(use-package racket-mode
+  :mode ("\\.rkt$" . racket-mode))
+
+#+end_src
+** Sly
 #+BEGIN_SRC emacs-lisp
-(use-package slime
-  :commands slime
-  :ensure slime-company
+(use-package sly
   :config
-  (setq inferior-lisp-program "sbcl")
-  (slime-setup '(slime-fancy slime-company slime-quicklisp)))
+  ;;Just in case I need to switch back to clozure
+  (if nil
+      (setq inferior-lisp-program "wx86cl64.exe -K utf-8")
+    (setq inferior-lisp-program "sbcl"))
+
+  (with-eval-after-load 'sly-mrepl
+    (define-key sly-mrepl-mode-map (kbd "<C-up>") 'sly-mrepl-previous-input-or-button)
+    (define-key sly-mrepl-mode-map (kbd "<C-down>") 'sly-mrepl-next-input-or-button)))
 #+END_SRC
+
 * Org Mode
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -527,6 +543,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :config
   (progn
     (setq org-src-preserve-indentation nil
+
           org-confirm-babel-evaluate nil
           org-return-follows-link t
           org-startup-with-inline-images t
@@ -574,7 +591,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
     (setq org-icalendar-use-scheduled '(event-if-todo event-if-not-todo))
     (setq org-icalendar-use-deadline '(event-if-todo event-if-not-todo))
 
-    
+
     (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
     (add-hook 'org-mode-hook 'org-bullets-mode)
     (add-hook 'org-mode-hook 'org-indent-mode)
@@ -590,7 +607,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
      (calc . t)
      (lisp . t)
      (js . t)
-     (restclient . t)))
+     (C . t)
+     (scheme . t)))
 
 
 
@@ -599,8 +617,9 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 This is still inside the org use-package
 #+BEGIN_SRC emacs-lisp
 (defun neo-postamble (plist)
-  (format  
-   "<footer>
+  (format
+   "<a id=\"sticky_arrow\" href=\"#top\">Top</a>
+  <footer>
     <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
   </footer>" (current-time-string)))
 
@@ -656,8 +675,22 @@ This is still inside the org use-package
          :publishing-directory "~/Sync/publish/"
          :recursive t
          :publishing-function org-publish-attachment)
+        
+        ("org-src-content"
+         :base-directory "~/Sync/Notes/website/content/"
+         :base-extension "org"
+         :publishing-directory "~/Sync/publish/src/content/"
+         :recursive t
+         :publishing-function org-publish-attachment)
 
-        ("website" :components ("org-content" "org-static" "org-blog")))))
+        ("org-src-blog"
+         :base-directory "~/Sync/Notes/website/blog/"
+         :base-extension "org"
+         :publishing-directory "~/Sync/publish/src/blog/"
+         :recursive t
+         :publishing-function org-publish-attachment)
+        
+        ("website" :components ("org-content" "org-static" "org-blog" "org-src-content" "org-src-blog")))))
 #+END_SRC
 ** Org Capture
 #+BEGIN_SRC emacs-lisp
@@ -679,6 +712,7 @@ This is still inside the org use-package
 ** Ob-restclient
 #+BEGIN_SRC emacs-lisp
 (use-package ob-restclient
+  :disabled t
   :after org)
 #+END_SRC
 ** Org-caldav
@@ -737,6 +771,7 @@ This is still inside the org use-package
   :config
   (load-theme 'zerodark t))
 #+END_SRC
+
 ** Modeline
 #+BEGIN_SRC emacs-lisp
 (setq-default mode-line-format
@@ -744,3 +779,4 @@ This is still inside the org use-package
                 (vc-mode vc-mode)
                 "  " mode-line-misc-info mode-line-end-spaces))
 #+END_SRC
+
