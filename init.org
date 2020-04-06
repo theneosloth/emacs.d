@@ -276,6 +276,7 @@ Moves the custom file into a temp file, effectively making it session local
 
 (use-package evil-commentary
   :after evil
+  :disabled t
   :config (evil-commentary-mode))
 #+END_SRC
 
@@ -289,9 +290,14 @@ Moves the custom file into a temp file, effectively making it session local
 *** Org-evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil-org
-  :commands evil-org-mode
+  :after org
   :config
-  (add-hook 'org-mode-hook 'evil-org-mode))
+  (add-hook 'org-mode-hook 'evil-org-mode)
+  (add-hook 'evil-org-mode-hook
+            (lambda ()
+              (evil-org-set-key-theme)))
+  (require 'evil-org-agenda)
+  (evil-org-agenda-set-keys))
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
@@ -324,12 +330,14 @@ Moves the custom file into a temp file, effectively making it session local
 ** mtg-deck-mode
 #+BEGIN_SRC emacs-lisp
 (use-package mtg-deck-mode
+  :disabled t
   :defer t)
 #+END_SRC
 ** E-reader
 #+BEGIN_SRC emacs-lisp
 (use-package nov
   :mode (("\\.epub" . nov-mode))
+  :disabled t
   :config
   (progn
     (add-to-list 'evil-emacs-state-modes 'nov-mode)))
@@ -339,6 +347,7 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package mingus
   :commands mingus-browse
   :commands mingus-add-podcast-and-play
+  :disabled t
   :init
   (progn
     (global-set-key (kbd "C-c m") 'mingus-browse)
@@ -364,16 +373,19 @@ Moves the custom file into a temp file, effectively making it session local
 ** Pass
 #+BEGIN_SRC emacs-lisp
 (use-package password-store
+  :disabled t
   :commands (password-store-copy))
 #+END_SRC
 ** Spray
 #+BEGIN_SRC emacs-lisp
 (use-package spray
+  :disabled t
   :commands spray-mode)
 #+END_SRC
 ** Writeroom
 #+BEGIN_SRC emacs-lisp
 (use-package writeroom-mode
+  :disabled t
   :commands writeroom-mode)
 #+END_SRC
 ** Atomic Chrome
@@ -391,6 +403,7 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
 ** Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
+  :disabled t
   :commands magit-status)
 #+END_SRC
 ** Langtool
@@ -416,9 +429,10 @@ Automatic indentation.
 **** Auto fill comments
 #+BEGIN_SRC emacs-lisp
 (defun comment-auto-fill ()
+  (interactive)
   (setq-local comment-auto-fill-only-comments t)
   (auto-fill-mode 1))
-(add-hook 'prog-mode-hook 'comment-auto-fill)
+;;(add-hook 'prog-mode-hook 'comment-auto-fill)
 #+END_SRC
 *** Parens
 #+BEGIN_SRC emacs-lisp
@@ -447,8 +461,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :commands lsp
-  :hook (python-mode js2-mode)
-
+  :hook (python-mode js-mode)
   :init
   (setq lsp-enable-snippet nil))
 
@@ -457,6 +470,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+END_SRC
 
 ** Java
+Add a custom compile command
+
 #+BEGIN_SRC emacs-lisp
 (add-hook 'java-mode-hook
           (lambda ()
@@ -487,7 +502,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package emmet-mode
   :commands emmet-mode
-  :hook (web-mode html-mode sgml-mode mhtml-mode)
+  :hook (js-mode html-mode sgml-mode mhtml-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
 #+END_SRC
@@ -671,7 +686,7 @@ This is still inside the org use-package
 
         ("org-static"
          :base-directory "~/Sync/Notes/website/static/"
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html"
          :publishing-directory "~/Sync/publish/"
          :recursive t
          :publishing-function org-publish-attachment)
@@ -765,18 +780,18 @@ This is still inside the org use-package
 #+END_SRC
 
 * Theme
-** Zerodark
-#+BEGIN_SRC emacs-lisp
-(use-package zerodark-theme
-  :config
-  (load-theme 'zerodark t))
-#+END_SRC
-
 ** Modeline
 #+BEGIN_SRC emacs-lisp
 (setq-default mode-line-format
               '("%e" mode-line-front-space mode-line-mule-info mode-line-client mode-line-modified mode-line-remote mode-line-frame-identification mode-line-buffer-identification "   " mode-line-position evil-mode-line-tag
                 (vc-mode vc-mode)
                 "  " mode-line-misc-info mode-line-end-spaces))
+#+END_SRC
+
+** Zerodark
+#+BEGIN_SRC emacs-lisp
+(use-package zerodark-theme
+  :config
+  (load-theme 'zerodark t))
 #+END_SRC
 
