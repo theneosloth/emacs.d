@@ -733,6 +733,7 @@ This is still inside the org use-package
 ** Org-caldav
 #+BEGIN_SRC emacs-lisp
 (use-package org-caldav
+  :disabled t
   :config
   (setq org-caldav-url "https://posteo.de:8443/calendars/neosloth")
   (setq org-caldav-calendar-id "default")
