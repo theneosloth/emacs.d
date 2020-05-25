@@ -199,11 +199,6 @@ Move the auto-save and backup files into the temp file directory so that emacs d
   (message (emacs-init-time)))
 
 #+END_SRC
-*** Show agenda on load
-#+BEGIN_SRC emacs-lisp
-(setq org-agenda-window-setup 'current-window)
-(add-hook 'after-init-hook 'org-agenda-list)
-#+END_SRC
 ** Dired
 *** Dired quick copy/paste
 When dired-dwim-target is enabled, dired tries to guess a default target directory. So if there are multiple dired panes open it will use that as the default.
@@ -252,6 +247,16 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (ivy-mode 1))
 #+END_SRC
+** Ido                                                             :ARCHIVE:
+#+begin_src emacs-lisp
+(use-package ido
+  :ensure nil
+  :disabled t
+  :config
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1))
+#+end_src
 ** Evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil
@@ -278,11 +283,18 @@ Moves the custom file into a temp file, effectively making it session local
   :after evil
   :disabled t
   :config (evil-commentary-mode))
+
+(use-package lispyville
+  :hook ((lisp-mode . lispyville-mode)
+         (emacs-lisp-mode . lispyville-mode))
+  :config
+  (lispyville-set-key-theme '(operators c-w additional slurp/barf-cp)))
 #+END_SRC
 
-*** Evil-cleverparens
+*** Evil-cleverparens                                             :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package evil-cleverparens
+  :disabled t
   :commands evil-cleverparens-mode
   :hook ((lisp-mode . evil-cleverparens-mode)
          (emacs-lisp-mode . evil-cleverparens-mode)))
@@ -327,7 +339,7 @@ Moves the custom file into a temp file, effectively making it session local
     ;; open pdfs scaled to fit page
     (setq-default pdf-view-display-size 'fit-page)))
 #+END_SRC
-** mtg-deck-mode
+** mtg-deck-mode                                                   :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package mtg-deck-mode
   :disabled t
@@ -342,7 +354,7 @@ Moves the custom file into a temp file, effectively making it session local
   (progn
     (add-to-list 'evil-emacs-state-modes 'nov-mode)))
 #+END_SRC
-** Mingus
+** Mingus                                                          :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package mingus
   :commands mingus-browse
@@ -370,25 +382,25 @@ Moves the custom file into a temp file, effectively making it session local
   (company-auctex-init))
 #+END_SRC
 
-** Pass
+** Pass                                                            :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package password-store
   :disabled t
   :commands (password-store-copy))
 #+END_SRC
-** Spray
+** Spray                                                           :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package spray
   :disabled t
   :commands spray-mode)
 #+END_SRC
-** Writeroom
+** Writeroom                                                       :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package writeroom-mode
   :disabled t
   :commands writeroom-mode)
 #+END_SRC
-** Atomic Chrome
+** Atomic Chrome                                                   :ARCHIVE:
 Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText]]
 #+BEGIN_SRC emacs-lisp
 (use-package atomic-chrome
@@ -400,7 +412,7 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
           ("gitlab\\.com" . gfm-mode)
           ("reddit\\.com" . markdown-mode))))
 #+END_SRC
-** Magit
+** Magit                                                           :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package magit
   :disabled t
@@ -531,6 +543,7 @@ I'm only using this for SICP right now, ideally I'd set it up in a more general 
 Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collections]]
 #+begin_src emacs-lisp
 (use-package racket-mode
+  :disabled t
   :mode ("\\.rkt$" . racket-mode))
 
 #+end_src
@@ -548,6 +561,15 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
     (define-key sly-mrepl-mode-map (kbd "<C-down>") 'sly-mrepl-next-input-or-button)))
 #+END_SRC
 
+** Very Large files
+#+begin_src emacs-lisp
+(defun check-file-size-hook ()
+  "If the file is too large, switch to fundamental mode"
+  (when (> (buffer-size) (* 1024 1024))
+    (fundamental-mode)))
+
+(add-hook 'find-file-hook 'check-file-size-hook)
+#+end_src
 * Org Mode
 #+BEGIN_SRC emacs-lisp
 (use-package org
@@ -760,9 +782,9 @@ This is still inside the org use-package
   (when
       (file-readable-p "~/.emacs.d/ercauth.el.gpg")
     (require 'erc-services)
-    (erc-services-mode 1)
     (setq erc-prompt-for-nickserv-password nil)
-    (load "~/.emacs.d/ercauth.el.gpg"))
+    (load "~/.emacs.d/ercauth.el.gpg")
+    (erc-services-mode 1))
 
   ;; Wait till identifying before joining channels
   (setq erc-autojoin-timing 'ident)
