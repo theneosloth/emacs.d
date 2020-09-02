@@ -108,6 +108,9 @@ Make sure that use-package is installed and that ensure is always on so that use
 
 ;; Keep the buffer up to date with disk changes
 (global-auto-revert-mode 1)
+
+;;Speeds up process reads
+(setq read-process-output-max (* 1024 1024)) ;; 1mb
 #+END_SRC
 *** Easily search for non ASCII Characters
 #+BEGIN_SRC emacs-lisp
@@ -425,6 +428,12 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
   :config
   (setq langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
 #+END_SRC
+** Elcord
+#+begin_src emacs-lisp
+(use-package elcord
+  :config
+  (setq elcord-display-buffer-details nil))
+#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Indentation
@@ -468,18 +477,36 @@ Automatic indentation.
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
+
 ** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
+
+*** lsp-mode
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
-  :commands lsp
-  :hook (python-mode js-mode)
-  :init
-  (setq lsp-enable-snippet nil))
+  :hook ((js-mode . lsp-deferred)
+         (python-mode . lsp-deferred)
+         (css-mode . lsp-deferred)
+         (html-mode . lsp-deferred))
+  :commands (lsp lsp-deferred)
+  :config
+  (setq lsp-modeline-code-actions-segments '(name count)))
 
-(use-package company-lsp :commands company-lsp)
-
+(use-package lsp-ui :commands lsp-ui-mode)
 #+END_SRC
+
+*** Eglot                                                         :ARCHIVE:
+#+begin_src emacs-lisp
+(use-package eglot
+  :hook ((js-mode . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (html-mode . eglot-ensure)
+         (css-mode . eglot-ensure))
+  :disabled t
+  :config
+  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
+#+end_src
 
 ** Java
 Add a custom compile command
@@ -522,6 +549,7 @@ Add a custom compile command
 #+BEGIN_SRC emacs-lisp
 (use-package flymake-vnu
   :config
+  :disabled t
   (flymake-vnu-setup)
   (setq flymake-vnu-jar "~/Sync/Misc/vnu.jar"))
 #+END_SRC
@@ -569,6 +597,15 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
     (fundamental-mode)))
 
 (add-hook 'find-file-hook 'check-file-size-hook)
+#+end_src
+** Restclient
+#+begin_src emacs-lisp
+(use-package restclient
+  :ensure ob-restclient
+  :after org
+  :commands (restclient-mode)
+  :mode (("\\.rest$" . restclient-mode))
+  :init (add-to-list 'org-babel-load-languages '(restclient . t)))
 #+end_src
 * Org Mode
 #+BEGIN_SRC emacs-lisp
@@ -708,7 +745,7 @@ This is still inside the org use-package
 
         ("org-static"
          :base-directory "~/Sync/Notes/website/static/"
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html\\|txt"
          :publishing-directory "~/Sync/publish/"
          :recursive t
          :publishing-function org-publish-attachment)
@@ -745,12 +782,6 @@ This is still inside the org use-package
       :empty-lines 1 )
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
-#+END_SRC
-** Ob-restclient
-#+BEGIN_SRC emacs-lisp
-(use-package ob-restclient
-  :disabled t
-  :after org)
 #+END_SRC
 ** Org-caldav
 #+BEGIN_SRC emacs-lisp
