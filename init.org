@@ -484,6 +484,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
          (css-mode . lsp-deferred)
          (html-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
+  :init
+  (add-hook 'js-mode-hook #'(lambda () (setq lsp-diagnostic-package :none)))
   :config
   (setq lsp-modeline-code-actions-segments '(name count)))
 
@@ -610,14 +612,11 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
   :mode (("\\.rest$" . restclient-mode))
   :init (add-to-list 'org-babel-load-languages '(restclient . t)))
 #+end_src
-** Flycheck                                                        :ARCHIVE:
+** Flycheck
 #+begin_src emacs-lisp
 (use-package flycheck
-  :disabled t
   :init
-  (global-flycheck-mode)
-  :config
-  (flycheck-add-mode 'javascript-eslint 'js-mode))
+  (global-flycheck-mode))
 #+end_src
 * Org Mode
 #+BEGIN_SRC emacs-lisp
