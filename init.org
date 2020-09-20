@@ -46,6 +46,7 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
   (package-refresh-contents))
 
 #+END_SRC
+
 ** Install use-package
 Make sure that use-package is installed and that ensure is always on so that use-package downloads every package that is not installed.
 #+BEGIN_SRC emacs-lisp
@@ -128,12 +129,12 @@ Make sure that use-package is installed and that ensure is always on so that use
 Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/cfugwkt][/u/howardabrams]] and [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/cfuuo5y][/u/AndersBakken]]
 #+BEGIN_SRC emacs-lisp
 (defun eshell-here ()
-"Opens up a new shell in the directory associated with the current buffer's file."
-(interactive)
-(let* ((parent (if (buffer-file-name)
-                    (file-name-directory (buffer-file-name))
-                default-directory))
-        (name (car (last (split-string parent "/" t)))))
+  "Opens up a new shell in the directory associated with the current buffer's file."
+  (interactive)
+  (let* ((parent (if (buffer-file-name)
+                     (file-name-directory (buffer-file-name))
+                   default-directory))
+         (name (car (last (split-string parent "/" t)))))
     (split-window-vertically)
     (other-window 1)
     (eshell)
@@ -179,7 +180,7 @@ Move the auto-save and backup files into the temp file directory so that emacs d
       delete-old-versions t  ; Automatically delete excess backups
       kept-new-versions 20   ; how many of the newest versions to keep
       kept-old-versions 5    ; and how many of the old
-)
+      )
 
 (setq auto-save-file-name-transforms
       `((".*" , temporary-file-directory t)))
@@ -279,7 +280,6 @@ Moves the custom file into a temp file, effectively making it session local
 
 (use-package evil-commentary
   :after evil
-  :disabled t
   :config (evil-commentary-mode))
 
 (use-package lispyville
@@ -314,8 +314,11 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package company
   :defer 10
   :diminish company-mode
-  :bind (("TAB" . company-indent-or-complete-common))
   :init (global-company-mode t)
+  :bind (:map company-active-map
+              ("<tab>" . company-complete-selection)
+              ("C-j" . company-select-next)
+              ("C-k" . company-select-previous))
   :config
   (add-hook 'eshell-mode-hook (lambda () (company-mode -1)))
   ;; no delay no autocomplete
@@ -485,7 +488,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
          (html-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
   :init
-  (add-hook 'js-mode-hook #'(lambda () (setq lsp-diagnostic-package :none)))
+  (add-hook 'js-mode-hook #'(lambda () (setq lsp-diagnostics-provider :none)))
   :config
   (setq lsp-modeline-code-actions-segments '(name count)))
 
@@ -493,6 +496,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+END_SRC
 
 *** Eglot                                                         :ARCHIVE:
+
 #+begin_src emacs-lisp
 (use-package eglot
   :hook ((js-mode . eglot-ensure)
@@ -504,15 +508,18 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
 #+end_src
-
+** Json
+#+begin_src emacs-lisp
+(use-package json-mode)
+#+end_src
 ** Java
 Add a custom compile command
 
 #+BEGIN_SRC emacs-lisp
 (add-hook 'java-mode-hook
           (lambda ()
-	    (set (make-local-variable 'compile-command)
-		 (let ((file (file-name-nondirectory buffer-file-name)))
+            (set (make-local-variable 'compile-command)
+                 (let ((file (file-name-nondirectory buffer-file-name)))
                    (format "javac %s" 
                            file)))))
 #+END_SRC
@@ -538,7 +545,8 @@ Add a custom compile command
 *** Indentation
 #+begin_src emacs-lisp
 (defun neo-js-mode-hook ()
-  (setq js-indent-level 2))
+  (setq js-indent-level 2)
+  (setq-local tab-width 4))
 
 (add-hook 'js-mode-hook #'neo-js-mode-hook)
 #+end_src
@@ -549,14 +557,6 @@ Add a custom compile command
   :hook (js-mode html-mode sgml-mode mhtml-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
-#+END_SRC
-*** Validator 
-#+BEGIN_SRC emacs-lisp
-(use-package flymake-vnu
-  :config
-  :disabled t
-  (flymake-vnu-setup)
-  (setq flymake-vnu-jar "~/Sync/Misc/vnu.jar"))
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
