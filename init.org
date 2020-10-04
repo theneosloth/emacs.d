@@ -184,6 +184,7 @@ Move the auto-save and backup files into the temp file directory so that emacs d
 
 (setq auto-save-file-name-transforms
       `((".*" , temporary-file-directory t)))
+
 #+END_SRC
 ** Startup Message and Screen
 #+BEGIN_SRC emacs-lisp
@@ -237,7 +238,9 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
   :diminish ivy-mode
+  
   :ensure counsel
+
   :ensure swiper
   :bind (("M-x" . counsel-M-x)
          ("C-x C-f" . counsel-find-file)
@@ -316,12 +319,13 @@ Moves the custom file into a temp file, effectively making it session local
   :diminish company-mode
   :init (global-company-mode t)
   :bind (:map company-active-map
-              ("<tab>" . company-complete-selection)
-              ("C-j" . company-select-next)
-              ("C-k" . company-select-previous))
+              ("<tab>" . company-select-next)
+              ("<backtab>" . company-select-previous)
+              ("RET" . nil))
   :config
-  (add-hook 'eshell-mode-hook (lambda () (company-mode -1)))
-  ;; no delay no autocomplete
+  (add-hook 'eshell-mode-hook #'(lambda () (company-mode -1)))
+  (add-hook 'after-init-hook 'company-tng-mode)
+  ;; no delay on autocomplete
   (setq
    company-idle-delay 0
    company-minimum-prefix-length 2
@@ -596,12 +600,8 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
 
 ** Very Large files
 #+begin_src emacs-lisp
-(defun check-file-size-hook ()
-  "If the file is too large, switch to fundamental mode"
-  (when (> (buffer-size) (* 1024 1024))
-    (fundamental-mode)))
-
-(add-hook 'find-file-hook 'check-file-size-hook)
+(if (version<= "27.1" emacs-version)
+    (global-so-long-mode 1))
 #+end_src
 ** Restclient
 #+begin_src emacs-lisp
