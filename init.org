@@ -623,7 +623,7 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
 (use-package org
   :defer t
   :diminish (org-indent-mode visual-line-mode flyspell-mode)
-  :ensure org-bullets
+  :ensure org-superstar
   :ensure htmlize
   :config
   (progn
@@ -678,7 +678,7 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
 
 
     (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
-    (add-hook 'org-mode-hook 'org-bullets-mode)
+    (add-hook 'org-mode-hook 'org-superstar-mode)
     (add-hook 'org-mode-hook 'org-indent-mode)
     (add-hook 'org-mode-hook 'visual-line-mode))
 
@@ -694,9 +694,6 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
      (js . t)
      (C . t)
      (scheme . t)))
-
-
-
 #+END_SRC
 ** Org Publish
 This is still inside the org use-package
@@ -707,6 +704,15 @@ This is still inside the org use-package
   <footer>
     <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
   </footer>" (current-time-string)))
+
+;; Lazy and bad
+(defun neo-org-publish ()
+  (interactive)
+  (let ((default-directory
+          (plist-get (cdar org-publish-project-alist) :publishing-directory))
+        (commit-msg (current-time-string)))
+    (org-publish-all)
+    (shell-command (format "git commit -am \"%s\" && git push origin master" commit-msg))))
 
 (setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
 
