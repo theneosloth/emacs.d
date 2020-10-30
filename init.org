@@ -561,6 +561,16 @@ Add a custom compile command
   :hook (js-mode html-mode sgml-mode mhtml-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
+
+(use-package web-mode
+  :mode (("\\.js\\'" . web-mode)
+         ("\\.jsx\\'" . web-mode)
+         ("\\.ts\\'" . web-mode)
+         ("\\.tsx\\'" . web-mode)
+         ("\\.html\\'" . web-mode)
+         ("\\.vue\\'" . web-mode)
+	 ("\\.json\\'" . web-mode))
+  :commands web-mode)
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
