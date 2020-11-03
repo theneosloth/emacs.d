@@ -154,7 +154,8 @@ Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_o
   (set-face-attribute 'default nil :family "DejaVu Sans Mono"))
 
 ;;The following lines force UTF-8 whenever possible
-(setq-default buffer-file-coding-system 'unix)
+(setq-default buffer-file-coding-system 'utf-8-unix)
+(prefer-coding-system 'utf-8-unix)
 #+END_SRC
 ** Dos2Unix
 #+BEGIN_SRC emacs-lisp
@@ -263,11 +264,14 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (use-package evil
   :init (setq evil-want-keybinding nil)
+  :ensure undo-tree
   :config
   (evil-mode 1)
   ;;Disable evil in these modes
   (evil-set-initial-state 'erc-mode 'emacs)
-  (evil-set-initial-state 'message-mode 'emacs))
+  (evil-set-initial-state 'message-mode 'emacs)
+  (global-undo-tree-mode)
+  (setq evil-undo-system 'undo-tree))
 
 (use-package evil-matchit
   :after evil
@@ -387,6 +391,14 @@ Moves the custom file into a temp file, effectively making it session local
   (company-auctex-init))
 #+END_SRC
 
+** Magit
+#+BEGIN_SRC emacs-lisp
+(use-package magit
+  :ensure evil-magit
+  :commands magit-status
+  :init
+  (global-set-key (kbd "C-c g") 'magit-status))
+#+END_SRC
 ** Pass                                                            :ARCHIVE:
 #+BEGIN_SRC emacs-lisp
 (use-package password-store
@@ -416,12 +428,6 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
         '(("github\\.com" . gfm-mode)
           ("gitlab\\.com" . gfm-mode)
           ("reddit\\.com" . markdown-mode))))
-#+END_SRC
-** Magit                                                           :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :disabled t
-  :commands magit-status)
 #+END_SRC
 ** Langtool
 #+BEGIN_SRC emacs-lisp
@@ -487,6 +493,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :hook ((js-mode . lsp-deferred)
+         (ts-mode . lsp-deferred)
          (python-mode . lsp-deferred)
          (css-mode . lsp-deferred)
          (html-mode . lsp-deferred))
@@ -554,22 +561,25 @@ Add a custom compile command
 
 (add-hook 'js-mode-hook #'neo-js-mode-hook)
 #+end_src
+*** Typescript
+#+begin_src emacs-lisp
+(add-to-list 'auto-mode-alist 
+             '("\\.ts\\'" . js-mode))
+#+end_src
 ** Web/HTML
 #+BEGIN_SRC emacs-lisp
 (use-package emmet-mode
   :commands emmet-mode
-  :hook (js-mode html-mode sgml-mode mhtml-mode)
+  :hook (js-mode html-mode sgml-mode mhtml-mode ts-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
 
 (use-package web-mode
-  :mode (("\\.js\\'" . web-mode)
-         ("\\.jsx\\'" . web-mode)
-         ("\\.ts\\'" . web-mode)
+  :mode (("\\.jsx\\'" . web-mode)
+         ("\\.component.ts\\'" . web-mode)
          ("\\.tsx\\'" . web-mode)
-         ("\\.html\\'" . web-mode)
-         ("\\.vue\\'" . web-mode)
-	 ("\\.json\\'" . web-mode))
+         ("\\.component.html\\'" . web-mode)
+         ("\\.vue\\'" . web-mode))
   :commands web-mode)
 #+END_SRC
 ** Markdown
