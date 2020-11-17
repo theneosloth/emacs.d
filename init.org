@@ -265,13 +265,15 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package evil
   :init (setq evil-want-keybinding nil)
   :ensure undo-tree
+  :init
+  (setq evil-undo-system 'undo-tree)
   :config
   (evil-mode 1)
   ;;Disable evil in these modes
   (evil-set-initial-state 'erc-mode 'emacs)
   (evil-set-initial-state 'message-mode 'emacs)
   (global-undo-tree-mode)
-  (setq evil-undo-system 'undo-tree))
+  )
 
 (use-package evil-matchit
   :after evil
@@ -450,10 +452,16 @@ Automatic indentation.
 #+BEGIN_SRC emacs-lisp
 (use-package aggressive-indent
   :diminish aggressive-indent-mode
+  :disabled t
   :config
   (global-aggressive-indent-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
   (add-to-list 'aggressive-indent-excluded-modes 'slime-repl-mode))
+
+(defun neo-electric-indent ()
+  (electric-indent-mode +1))
+
+(add-hook 'prog-mode-hook 'neo-electric-indent)
 #+END_SRC
 **** Auto fill comments
 #+BEGIN_SRC emacs-lisp
@@ -499,10 +507,11 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
          (web-mode . lsp-deferred)
          (html-mode . lsp-deferred))
   :commands (lsp lsp-deferred)
-  :init
-  (add-hook 'js-mode-hook #'(lambda () (setq lsp-diagnostics-provider :none)))
+  :ensure treemacs
+
   :config
-  (setq lsp-modeline-code-actions-segments '(name icon count))
+  (setq lsp-modeline-code-actions-segments '(name count))
+
   (when (eq system-type 'windows-nt)
     (setq lsp-clients-angular-language-server-command
           '("node"
@@ -514,6 +523,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
             "--stdio"))))
 
 (use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 #+END_SRC
 
 *** Eglot                                                         :ARCHIVE:
@@ -585,6 +595,7 @@ Add a custom compile command
   (setq emmet-move-cursor-between-quotes t))
 
 (use-package web-mode
+  :disabled t
   :mode (("\\.jsx\\'" . web-mode)
          ("\\.component.ts\\'" . web-mode)
          ("\\.module.ts\\'" . web-mode)
@@ -713,7 +724,6 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
     (add-hook 'org-mode-hook 'org-indent-mode)
     (add-hook 'org-mode-hook 'visual-line-mode))
 
-  (require 'org-bullets)
   (require 'ox-md)
 
   (org-babel-do-load-languages
