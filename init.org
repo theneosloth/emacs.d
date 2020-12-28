@@ -438,12 +438,6 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
   :config
   (setq langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
 #+END_SRC
-** Elcord
-#+begin_src emacs-lisp
-(use-package elcord
-  :config
-  (setq elcord-display-buffer-details nil))
-#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Indentation
@@ -511,6 +505,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
   :config
   (setq lsp-modeline-code-actions-segments '(name count))
+  (setq lsp-headerline-breadcrumb-enable nil)
 
   (when (eq system-type 'windows-nt)
     (setq lsp-clients-angular-language-server-command
