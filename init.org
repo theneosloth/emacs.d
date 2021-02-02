@@ -214,7 +214,7 @@ Show all files with human readable sizes
 
 ** Fix lag
 [[https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746][Source]]
-#+BEGIN_SRC
+#+BEGIN_SRC emacs-lisp
 (setq auto-window-vscroll nil)
 #+END_SRC
 ** Horizontal Scrolling
@@ -272,8 +272,7 @@ Moves the custom file into a temp file, effectively making it session local
   ;;Disable evil in these modes
   (evil-set-initial-state 'erc-mode 'emacs)
   (evil-set-initial-state 'message-mode 'emacs)
-  (global-undo-tree-mode)
-  )
+  (global-undo-tree-mode))
 
 (use-package evil-matchit
   :after evil
@@ -585,18 +584,18 @@ Add a custom compile command
 #+BEGIN_SRC emacs-lisp
 (use-package emmet-mode
   :commands emmet-mode
-  :hook (js-mode html-mode sgml-mode mhtml-mode ts-mode)
+  :hook (js-mode html-mode sgml-mode mhtml-mode ts-mode web-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
 
 (use-package web-mode
-  :disabled t
   :mode (("\\.jsx\\'" . web-mode)
          ("\\.component.ts\\'" . web-mode)
          ("\\.module.ts\\'" . web-mode)
          ("\\.tsx\\'" . web-mode)
          ("\\.component.html\\'" . web-mode)
-         ("\\.vue\\'" . web-mode))
+         ("\\.vue\\'" . web-mode)
+         ("\\.ejs\\'" . web-mode))
   :commands web-mode)
 #+END_SRC
 ** Markdown
