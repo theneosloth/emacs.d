@@ -234,6 +234,14 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (setq custom-file (make-temp-file "emacs-custom"))
 #+END_SRC
+** Enable ANSI Colors in compilation mode
+#+begin_src emacs-lisp
+(require 'ansi-color)
+(defun colorize-compilation-buffer ()
+  (let ((inhibit-read-only t))
+    (ansi-color-apply-on-region (point-min) (point-max))))
+(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
+#+end_src
 * Custom Packages
 ** Ivy
 #+BEGIN_SRC emacs-lisp
@@ -395,7 +403,6 @@ Moves the custom file into a temp file, effectively making it session local
 ** Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
-  :ensure evil-magit
   :commands magit-status
   :init
   (global-set-key (kbd "C-c g") 'magit-status))
@@ -494,18 +501,17 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :hook ((js-mode . lsp-deferred)
-         (ts-mode . lsp-deferred)
          (python-mode . lsp-deferred)
-         (css-mode . lsp-deferred)
-         (web-mode . lsp-deferred)
-         (html-mode . lsp-deferred))
-  :commands (lsp lsp-deferred)
+         (css-mode)
+         (web-mode)
+         (html-mode))
+  :commands lsp
   :ensure treemacs
-
+  :custom
+  (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   :config
   (setq lsp-modeline-code-actions-segments '(name count))
   (setq lsp-headerline-breadcrumb-enable nil)
-
   (when (eq system-type 'windows-nt)
     (setq lsp-clients-angular-language-server-command
           '("node"
@@ -532,6 +538,15 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :config
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
+#+end_src
+** Tree Sitter
+#+begin_src emacs-lisp
+(use-package tree-sitter
+  :config
+  (global-tree-sitter-mode))
+
+(use-package tree-sitter-langs
+  :after tree-sitter)
 #+end_src
 ** Json
 #+begin_src emacs-lisp
@@ -567,6 +582,16 @@ Add a custom compile command
 (add-hook 'c-mode-common-hook 'cpp-compile-command)
 #+END_SRC
 ** Javascript
+*** Deno compilation
+#+begin_src emacs-lisp
+(defun js-compile-command ()
+  (set (make-local-variable 'compile-command)
+       (let ((file (file-name-nondirectory buffer-file-name)))
+         (format "deno -q run %s"
+                 (shell-quote-argument file)))))
+
+(add-hook 'js-mode-hook 'js-compile-command)
+#+end_src
 *** Indentation
 #+begin_src emacs-lisp
 (defun neo-js-mode-hook ()
@@ -589,10 +614,10 @@ Add a custom compile command
   (setq emmet-move-cursor-between-quotes t))
 
 (use-package web-mode
-  :mode (("\\.jsx\\'" . web-mode)
-         ("\\.component.ts\\'" . web-mode)
-         ("\\.module.ts\\'" . web-mode)
+  :mode (("\\.component.ts\\'" . web-mode)
          ("\\.tsx\\'" . web-mode)
+         ("\\.jsx\\'" . web-mode)
+         ("\\.module.ts\\'" . web-mode)
          ("\\.component.html\\'" . web-mode)
          ("\\.vue\\'" . web-mode)
          ("\\.ejs\\'" . web-mode))
