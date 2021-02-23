@@ -543,7 +543,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+begin_src emacs-lisp
 (use-package tree-sitter
   :config
-  (global-tree-sitter-mode))
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 (use-package tree-sitter-langs
   :after tree-sitter)
