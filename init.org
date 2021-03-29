@@ -526,6 +526,15 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 #+END_SRC
 
+#+begin_src emacs-lisp
+(use-package dap-mode
+  :disabled t
+  :after lsp-mode
+  :defer t
+  :commands (dap-mode dap-debug)
+  :config
+  (dap-auto-configure-mode 1))
+#+end_src
 *** Eglot                                                         :ARCHIVE:
 
 #+begin_src emacs-lisp
@@ -583,16 +592,6 @@ Add a custom compile command
 (add-hook 'c-mode-common-hook 'cpp-compile-command)
 #+END_SRC
 ** Javascript
-*** Deno compilation
-#+begin_src emacs-lisp
-(defun js-compile-command ()
-  (set (make-local-variable 'compile-command)
-       (let ((file (file-name-nondirectory buffer-file-name)))
-         (format "deno -q run %s"
-                 (shell-quote-argument file)))))
-
-(add-hook 'js-mode-hook 'js-compile-command)
-#+end_src
 *** Indentation
 #+begin_src emacs-lisp
 (defun neo-js-mode-hook ()
