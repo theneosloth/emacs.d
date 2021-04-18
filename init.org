@@ -167,8 +167,8 @@ Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_o
 ** Clipboard
 #+BEGIN_SRC emacs-lisp
 ;;Enables copy/paste from the system clipboard.
-(setq select-enable-primary t)
-(setq select-enable-clipboard t)
+;;(setq select-enable-primary t)
+;;(setq select-enable-clipboard t)
 (setq save-interprogram-paste-before-kill t)
 (setq kill-do-not-save-duplicates t)
 #+END_SRC
@@ -272,6 +272,7 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (use-package evil
   :init (setq evil-want-keybinding nil)
+  :diminish undo-tree-mode
   :ensure undo-tree
   :init
   (setq evil-undo-system 'undo-tree)
