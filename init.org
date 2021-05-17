@@ -347,7 +347,7 @@ Moves the custom file into a temp file, effectively making it session local
 #+END_SRC
 ** Pdf-tools
 #+BEGIN_SRC emacs-lisp
-(unless (eq system-type 'windows-nt)
+(unless t ;;(eq system-type 'windows-nt)
   (use-package pdf-tools
     :mode ("\\.pdf$" . pdf-view-mode)
     :config
@@ -445,6 +445,13 @@ Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText
   :config
   (setq langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
 #+END_SRC
+** Get path from shell
+#+begin_src emacs-lisp
+(use-package exec-path-from-shell
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize)))
+#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Indentation
@@ -503,11 +510,14 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 (use-package lsp-mode
   :hook ((js-mode . lsp-deferred)
          (python-mode . lsp-deferred)
-         (css-mode)
-         (web-mode)
-         (html-mode))
+         (ruby-mode . lsp-deferred)
+         (css-mode . lsp-deferred) 
+         (web-mode . lsp-deferred)
+         (html-mode . lsp-deferred))
   :commands lsp
   :ensure treemacs
+  :init
+  (setq lsp-keymap-prefix "C-c l")
   :custom
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   :config
@@ -752,6 +762,7 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
      (java . t)
      (calc . t)
      (lisp . t)
+     (ruby . t)
      (js . t)
      (C . t)
      (scheme . t)))
@@ -873,7 +884,12 @@ This is still inside the org use-package
   (setq org-caldav-files org-agenda-files)
   (add-to-list 'org-agenda-files org-caldav-inbox))
 #+END_SRC
-
+** Export Backends
+*** ox-slack
+#+begin_src emacs-lisp
+(use-package ox-slack
+  :after org)
+#+end_src
 * ERC
 #+BEGIN_SRC emacs-lisp
 (use-package erc
