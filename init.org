@@ -243,11 +243,25 @@ Moves the custom file into a temp file, effectively making it session local
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
 * Custom Packages
+** Vertico
+#+begin_src emacs-lisp
+(use-package vertico
+  :init
+  (vertico-mode))
+(use-package marginalia
+  :init
+  (marginalia-mode))
+(use-package orderless
+  :init
+  (setq completion-styles '(orderless)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles . (partial-completion))))))
+#+end_src
 ** Ivy
 #+BEGIN_SRC emacs-lisp
 (use-package ivy
   :diminish ivy-mode
-  
+  :disabled t
   :ensure counsel
 
   :ensure swiper
