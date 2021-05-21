@@ -256,6 +256,10 @@ Moves the custom file into a temp file, effectively making it session local
   (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
+
+(use-package consult
+  :bind
+  (("\C-s" . consult-line)))
 #+end_src
 ** Ivy
 #+BEGIN_SRC emacs-lisp
@@ -776,6 +780,7 @@ Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collec
      (java . t)
      (calc . t)
      (lisp . t)
+     (shell . t)
      (ruby . t)
      (js . t)
      (C . t)
@@ -886,18 +891,6 @@ This is still inside the org use-package
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
 #+END_SRC
-** Org-caldav
-#+BEGIN_SRC emacs-lisp
-(use-package org-caldav
-  :disabled t
-  :config
-  (setq org-caldav-url "https://posteo.de:8443/calendars/neosloth")
-  (setq org-caldav-calendar-id "default")
-  (setq org-caldav-inbox "~/Sync/Notes/caldav.org")
-  (setq org-caldav-save-directory "~/Sync/Notes/")
-  (setq org-caldav-files org-agenda-files)
-  (add-to-list 'org-agenda-files org-caldav-inbox))
-#+END_SRC
 ** Export Backends
 *** ox-slack
 #+begin_src emacs-lisp
@@ -933,7 +926,7 @@ This is still inside the org use-package
   (setq erc-nick "neosloth")
   (setq erc-kill-buffer-on-part t)
   (setq erc-autojoin-channels-alist
-        '((".*freenode.net" "#emacs" "#lispgames")))
+        '((".*freenode.net" "#emacs")))
 
   (setq erc-interpret-mirc-color t)
 
