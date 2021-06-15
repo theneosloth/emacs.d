@@ -245,29 +245,12 @@ Moves the custom file into a temp file, effectively making it session local
 * Custom Packages
 ** Vertico
 #+begin_src emacs-lisp
-(use-package selectrum
+(use-package vertico
   :init
-  (selectrum-mode)
-  :config
-  (defun selectrum-fido-backward-updir ()
-    "Delete char before or go up directory, like `ido-mode'."
-    (interactive)
-    (if (and (eq (char-before) ?/)
-             (eq (selectrum--get-meta 'category) 'file))
-        (save-excursion
-          (goto-char (1- (point)))
-          (when (search-backward "/" (point-min) t)
-            (delete-region (1+ (point)) (point-max))))
-      (call-interactively 'backward-delete-char)))
-  (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir))
-
+  (vertico-mode))
 (use-package marginalia
   :init
   (marginalia-mode))
-
-(use-package savehist
-  :init
-  (savehist-mode))
 (use-package orderless
   :init
   (setq completion-styles '(orderless)
@@ -293,6 +276,16 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (ivy-mode 1))
 #+END_SRC
+** Ido                                                             :ARCHIVE:
+#+begin_src emacs-lisp
+(use-package ido
+  :ensure nil
+  :disabled t
+  :config
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1))
+#+end_src
 ** Evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil
@@ -331,6 +324,14 @@ Moves the custom file into a temp file, effectively making it session local
   (lispyville-set-key-theme '(operators c-w additional slurp/barf-cp)))
 #+END_SRC
 
+*** Evil-cleverparens                                             :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package evil-cleverparens
+  :disabled t
+  :commands evil-cleverparens-mode
+  :hook ((lisp-mode . evil-cleverparens-mode)
+         (emacs-lisp-mode . evil-cleverparens-mode)))
+#+END_SRC
 *** Org-evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil-org
@@ -375,6 +376,34 @@ Moves the custom file into a temp file, effectively making it session local
     ;; open pdfs scaled to fit page
     (setq-default pdf-view-display-size 'fit-page)))
 #+END_SRC
+** mtg-deck-mode                                                   :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package mtg-deck-mode
+  :disabled t
+  :defer t)
+#+END_SRC
+** E-reader
+#+BEGIN_SRC emacs-lisp
+(use-package nov
+  :mode (("\\.epub" . nov-mode))
+  :disabled t
+  :config
+  (progn
+    (add-to-list 'evil-emacs-state-modes 'nov-mode)))
+#+END_SRC
+** Mingus                                                          :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package mingus
+  :commands mingus-browse
+  :commands mingus-add-podcast-and-play
+  :disabled t
+  :init
+  (progn
+    (global-set-key (kbd "C-c m") 'mingus-browse)
+    ;; Disable evil in mingus
+    (add-hook 'mingus-browse-hook 'evil-emacs-state)
+    (add-hook 'mingus-playlist-hooks 'evil-emacs-state)))
+#+END_SRC
 ** Auctex
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
@@ -396,6 +425,36 @@ Moves the custom file into a temp file, effectively making it session local
   :commands magit-status
   :init
   (global-set-key (kbd "C-c g") 'magit-status))
+#+END_SRC
+** Pass                                                            :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package password-store
+  :disabled t
+  :commands (password-store-copy))
+#+END_SRC
+** Spray                                                           :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package spray
+  :disabled t
+  :commands spray-mode)
+#+END_SRC
+** Writeroom                                                       :ARCHIVE:
+#+BEGIN_SRC emacs-lisp
+(use-package writeroom-mode
+  :disabled t
+  :commands writeroom-mode)
+#+END_SRC
+** Atomic Chrome                                                   :ARCHIVE:
+Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText]]
+#+BEGIN_SRC emacs-lisp
+(use-package atomic-chrome
+  :commands atomic-chrome-start-server
+  :disabled t
+  :config
+  (setq atomic-chrome-url-major-mode-alist
+        '(("github\\.com" . gfm-mode)
+          ("gitlab\\.com" . gfm-mode)
+          ("reddit\\.com" . markdown-mode))))
 #+END_SRC
 ** Langtool
 #+BEGIN_SRC emacs-lisp
@@ -504,6 +563,19 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :commands (dap-mode dap-debug)
   :config
   (dap-auto-configure-mode 1))
+#+end_src
+*** Eglot                                                         :ARCHIVE:
+
+#+begin_src emacs-lisp
+(use-package eglot
+  :hook ((js-mode . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (html-mode . eglot-ensure)
+         (css-mode . eglot-ensure))
+  :disabled t
+  :config
+  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
 #+end_src
 ** Tree Sitter
 #+begin_src emacs-lisp
@@ -828,7 +900,17 @@ This is still inside the org use-package
 * ERC
 #+BEGIN_SRC emacs-lisp
 (use-package erc
-  :disabled t
+  :commands irc-connect
+  :bind ("C-c i" . irc-connect)
+  :init
+
+  (defun irc-connect ()
+    "Connect to IRC interactively."
+    (interactive)
+    (let ((servers '("irc.freenode.net")))
+      (mapc #'(lambda (server) (erc-tls :server server :port 6697)) servers)))
+
+  :config
   (when
       (file-readable-p "~/.emacs.d/ercauth.el.gpg")
     (require 'erc-services)
