@@ -399,7 +399,9 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (defun neosloth-prog-mode-hook ()
   "My custom prog mode hook"
-  (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
+  (setq electric-pair-inhibit-predicate
+        (lambda (c)
+          (if (char-equal c ?<) t (electric-pair-default-inhibit c))))
   (electric-pair-mode))
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
@@ -736,6 +738,16 @@ This is still inside the org use-package
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
 #+END_SRC
+** Company-Org
+#+begin_src emacs-lisp
+(use-package company-org-block
+  :custom
+  (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
+  :hook ((org-mode . (lambda ()
+                       (setq-local company-backends '(company-org-block))
+                       (company-mode +1)))))
+#+end_src
+
 ** Export Backends
 *** ox-slack
 #+begin_src emacs-lisp
