@@ -245,46 +245,38 @@ Moves the custom file into a temp file, effectively making it session local
 * Custom Packages
 ** Vertico
 #+begin_src emacs-lisp
-(use-package vertico
+(use-package selectrum
   :init
-  (vertico-mode))
+  (selectrum-mode)
+  :config
+  (defun selectrum-fido-backward-updir ()
+    "Delete char before or go up directory, like `ido-mode'."
+    (interactive)
+    (if (and (eq (char-before) ?/)
+             (eq (selectrum--get-meta 'category) 'file))
+        (save-excursion
+          (goto-char (1- (point)))
+          (when (search-backward "/" (point-min) t)
+            (delete-region (1+ (point)) (point-max))))
+      (call-interactively 'backward-delete-char)))
+  (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir))
+
 (use-package marginalia
   :init
   (marginalia-mode))
-(use-package orderless
+
+(use-package savehist
   :init
-  (setq completion-styles '(orderless)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles . (partial-completion))))))
+  (savehist-mode))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless))
+  (completion-category defaults nil))
 
 (use-package consult
   :bind
   (("\C-s" . consult-line)))
-#+end_src
-** Ivy
-#+BEGIN_SRC emacs-lisp
-(use-package ivy
-  :diminish ivy-mode
-  :disabled t
-  :ensure counsel
-
-  :ensure swiper
-  :bind (("M-x" . counsel-M-x)
-         ("C-x C-f" . counsel-find-file)
-         ("C-c I" . counsel-imenu)
-         ("\C-s" . swiper))
-  :config
-  (ivy-mode 1))
-#+END_SRC
-** Ido                                                             :ARCHIVE:
-#+begin_src emacs-lisp
-(use-package ido
-  :ensure nil
-  :disabled t
-  :config
-  (setq ido-enable-flex-matching t)
-  (setq ido-everywhere t)
-  (ido-mode 1))
 #+end_src
 ** Evil
 #+BEGIN_SRC emacs-lisp
@@ -324,14 +316,6 @@ Moves the custom file into a temp file, effectively making it session local
   (lispyville-set-key-theme '(operators c-w additional slurp/barf-cp)))
 #+END_SRC
 
-*** Evil-cleverparens                                             :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package evil-cleverparens
-  :disabled t
-  :commands evil-cleverparens-mode
-  :hook ((lisp-mode . evil-cleverparens-mode)
-         (emacs-lisp-mode . evil-cleverparens-mode)))
-#+END_SRC
 *** Org-evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil-org
@@ -363,47 +347,6 @@ Moves the custom file into a temp file, effectively making it session local
    company-minimum-prefix-length 2
    company-tooltip-limit 20))
 #+END_SRC
-** Pdf-tools
-#+BEGIN_SRC emacs-lisp
-(unless t ;;(eq system-type 'windows-nt)
-  (use-package pdf-tools
-    :mode ("\\.pdf$" . pdf-view-mode)
-    :config
-    (add-hook 'pdf-tools-enabled-hook 'pdf-view-midnight-minor-mode)
-    (pdf-tools-install)
-    (define-key pdf-view-mode-map (kbd "j") 'pdf-view-next-line-or-next-page)
-    (define-key pdf-view-mode-map (kbd "k") 'pdf-view-previous-line-or-previous-page)
-    ;; open pdfs scaled to fit page
-    (setq-default pdf-view-display-size 'fit-page)))
-#+END_SRC
-** mtg-deck-mode                                                   :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package mtg-deck-mode
-  :disabled t
-  :defer t)
-#+END_SRC
-** E-reader
-#+BEGIN_SRC emacs-lisp
-(use-package nov
-  :mode (("\\.epub" . nov-mode))
-  :disabled t
-  :config
-  (progn
-    (add-to-list 'evil-emacs-state-modes 'nov-mode)))
-#+END_SRC
-** Mingus                                                          :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package mingus
-  :commands mingus-browse
-  :commands mingus-add-podcast-and-play
-  :disabled t
-  :init
-  (progn
-    (global-set-key (kbd "C-c m") 'mingus-browse)
-    ;; Disable evil in mingus
-    (add-hook 'mingus-browse-hook 'evil-emacs-state)
-    (add-hook 'mingus-playlist-hooks 'evil-emacs-state)))
-#+END_SRC
 ** Auctex
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
@@ -422,81 +365,24 @@ Moves the custom file into a temp file, effectively making it session local
 ** Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
-  :commands magit-status
-  :init
-  (global-set-key (kbd "C-c g") 'magit-status))
-#+END_SRC
-** Pass                                                            :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package password-store
-  :disabled t
-  :commands (password-store-copy))
-#+END_SRC
-** Spray                                                           :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package spray
-  :disabled t
-  :commands spray-mode)
-#+END_SRC
-** Writeroom                                                       :ARCHIVE:
-#+BEGIN_SRC emacs-lisp
-(use-package writeroom-mode
-  :disabled t
-  :commands writeroom-mode)
-#+END_SRC
-** Atomic Chrome                                                   :ARCHIVE:
-Used with [[https://addons.mozilla.org/en-US/firefox/addon/ghosttext/][GhostText]]
-#+BEGIN_SRC emacs-lisp
-(use-package atomic-chrome
-  :commands atomic-chrome-start-server
-  :disabled t
-  :config
-  (setq atomic-chrome-url-major-mode-alist
-        '(("github\\.com" . gfm-mode)
-          ("gitlab\\.com" . gfm-mode)
-          ("reddit\\.com" . markdown-mode))))
+  :bind ("C-c g" . magit-status))
 #+END_SRC
 ** Langtool
 #+BEGIN_SRC emacs-lisp
 (use-package langtool
   :commands langtool-check
-  :config
-  (setq langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
+  :custom (langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
 #+END_SRC
 ** Get path from shell
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
+  :commands exec-path-from-shell-initialize
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize)))
 #+end_src
 * Programming Modes
 ** Language Independent Settings
-*** Indentation
-**** Aggressive indent
-Automatic indentation.
-#+BEGIN_SRC emacs-lisp
-(use-package aggressive-indent
-  :diminish aggressive-indent-mode
-  :disabled t
-  :config
-  (global-aggressive-indent-mode)
-  (add-to-list 'aggressive-indent-excluded-modes 'python-mode)
-  (add-to-list 'aggressive-indent-excluded-modes 'slime-repl-mode))
-
-(defun neo-electric-indent ()
-  (electric-indent-mode +1))
-
-(add-hook 'prog-mode-hook 'neo-electric-indent)
-#+END_SRC
-**** Auto fill comments
-#+BEGIN_SRC emacs-lisp
-(defun comment-auto-fill ()
-  (interactive)
-  (setq-local comment-auto-fill-only-comments t)
-  (auto-fill-mode 1))
-;;(add-hook 'prog-mode-hook 'comment-auto-fill)
-#+END_SRC
 *** Parens
 #+BEGIN_SRC emacs-lisp
 (show-paren-mode t)
@@ -514,7 +400,6 @@ Automatic indentation.
 (defun neosloth-prog-mode-hook ()
   "My custom prog mode hook"
   (setq electric-pair-inhibit-predicate 'electric-pair-conservative-inhibit)
-  ;;(flymake-mode)
   (electric-pair-mode))
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
@@ -531,52 +416,21 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
          (ruby-mode . lsp-deferred)
          (css-mode . lsp-deferred) 
          (web-mode . lsp-deferred)
-         (html-mode . lsp-deferred))
+         (html-mode . lsp-deferred)
+         (go-mode . lsp-deferred))
   :commands lsp
   :ensure treemacs
   :init
   (setq lsp-keymap-prefix "C-c l")
   :custom
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
-  :config
-  (setq lsp-modeline-code-actions-segments '(name count))
-  (setq lsp-headerline-breadcrumb-enable nil)
-  (when (eq system-type 'windows-nt)
-    (setq lsp-clients-angular-language-server-command
-          '("node"
-            "C:\\Users\\neosloth\\AppData\\Roaming\\npm\\node_modules\\@angular\\language-server"
-            "--ngProbeLocations"
-            "C:\\Users\\neosloth\\AppData\\Roaming\\npm\\node_modules"
-            "--tsProbeLocations"
-            "C:\\Users\\neosloth\\AppData\\Roaming\\npm\\node_modules"
-            "--stdio"))))
+  (lsp-modeline-code-actions-segments '(name count))
+  (lsp-headerline-breadcrumb-mode-enable nil))
 
 (use-package lsp-ui :commands lsp-ui-mode)
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 #+END_SRC
 
-#+begin_src emacs-lisp
-(use-package dap-mode
-  :disabled t
-  :after lsp-mode
-  :defer t
-  :commands (dap-mode dap-debug)
-  :config
-  (dap-auto-configure-mode 1))
-#+end_src
-*** Eglot                                                         :ARCHIVE:
-
-#+begin_src emacs-lisp
-(use-package eglot
-  :hook ((js-mode . eglot-ensure)
-         (python-mode . eglot-ensure)
-         (html-mode . eglot-ensure)
-         (css-mode . eglot-ensure))
-  :disabled t
-  :config
-  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
-  (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
-#+end_src
 ** Tree Sitter
 #+begin_src emacs-lisp
 (use-package tree-sitter
@@ -590,6 +444,26 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Json
 #+begin_src emacs-lisp
 (use-package json-mode)
+#+end_src
+** Ruby
+#+begin_src emacs-lisp
+(use-package chruby
+  :commands chruby-use-corresponding
+  :hook ((ruby-mode . chruby-use-corresponding)))
+#+end_src
+
+** Yaml
+#+begin_src emacs-lisp
+(use-package yaml-mode)
+#+end_src
+
+** Dockerfile
+#+begin_src emacs-lisp
+(use-package dockerfile-mode)
+#+end_src
+** Go
+#+begin_src emacs-lisp
+(use-package go-mode)
 #+end_src
 ** Java
 Add a custom compile command
@@ -621,14 +495,6 @@ Add a custom compile command
 (add-hook 'c-mode-common-hook 'cpp-compile-command)
 #+END_SRC
 ** Javascript
-*** Indentation
-#+begin_src emacs-lisp
-(defun neo-js-mode-hook ()
-  (setq js-indent-level 2)
-  (setq-local tab-width 4))
-
-(add-hook 'js-mode-hook #'neo-js-mode-hook)
-#+end_src
 *** Typescript
 #+begin_src emacs-lisp
 (add-to-list 'auto-mode-alist 
@@ -659,33 +525,12 @@ Add a custom compile command
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
-  :config
-  (progn
-    (setq markdown-command "multimarkdown")
-    (add-hook 'markdown-mode-hook 'visual-line-mode)))
+  :custom (markdown-command "multimarkdown"))
 #+END_SRC
-** Racket
-I'm only using this for SICP right now, ideally I'd set it up in a more general way.
-
-Prerequisite: [[https://docs.racket-lang.org/sicp-manual/index.html][SICP Collections]]
-#+begin_src emacs-lisp
-(use-package racket-mode
-  :disabled t
-  :mode ("\\.rkt$" . racket-mode))
-
-#+end_src
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
-  :config
-  ;;Just in case I need to switch back to clozure
-  (if nil
-      (setq inferior-lisp-program "wx86cl64.exe -K utf-8")
-    (setq inferior-lisp-program "sbcl"))
-
-  (with-eval-after-load 'sly-mrepl
-    (define-key sly-mrepl-mode-map (kbd "<C-up>") 'sly-mrepl-previous-input-or-button)
-    (define-key sly-mrepl-mode-map (kbd "<C-down>") 'sly-mrepl-next-input-or-button)))
+  :custom (inferior-lisp-program "ros -Q run"))
 #+END_SRC
 
 ** Very Large files
@@ -897,43 +742,6 @@ This is still inside the org use-package
 (use-package ox-slack
   :after org)
 #+end_src
-* ERC
-#+BEGIN_SRC emacs-lisp
-(use-package erc
-  :commands irc-connect
-  :bind ("C-c i" . irc-connect)
-  :init
-
-  (defun irc-connect ()
-    "Connect to IRC interactively."
-    (interactive)
-    (let ((servers '("irc.freenode.net")))
-      (mapc #'(lambda (server) (erc-tls :server server :port 6697)) servers)))
-
-  :config
-  (when
-      (file-readable-p "~/.emacs.d/ercauth.el.gpg")
-    (require 'erc-services)
-    (setq erc-prompt-for-nickserv-password nil)
-    (load "~/.emacs.d/ercauth.el.gpg")
-    (erc-services-mode 1))
-
-  ;; Wait till identifying before joining channels
-  (setq erc-autojoin-timing 'ident)
-  (setq erc-prompt-for-password nil)
-  ;; Switch current buffer whenever you are mentioned
-  (setq erc-auto-query 'buffer)
-  (setq erc-nick "neosloth")
-  (setq erc-kill-buffer-on-part t)
-  (setq erc-autojoin-channels-alist
-        '((".*freenode.net" "#emacs")))
-
-  (setq erc-interpret-mirc-color t)
-
-  (setq erc-prompt ">")
-  (erc-notifications-mode 1))
-#+END_SRC
-
 * Theme
 ** Modeline
 #+BEGIN_SRC emacs-lisp
