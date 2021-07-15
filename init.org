@@ -3,8 +3,9 @@
 * Package Initialization and Installation
 ** Garbage Collection
 #+BEGIN_SRC emacs-lisp
+(setq use-package-compute-statistics t)
 ;; Allocate more memory to the garbage collector during initialization.
-(setq gc-cons-threshold (* 500 1024 1024))
+(setq gc-cons-threshold 8000000)
 ;; Reset it to the default after initialization
 (add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
 #+END_SRC
@@ -91,9 +92,6 @@ Make sure that use-package is installed and that ensure is always on so that use
       (scroll-bar-mode -1)))
 
 (menu-bar-mode -1)
-
-;; Always treat tabs as spaces
-(setq-default indent-tabs-mode nil)
 
 ;;Truncate lines instead of word wrapping them
 (setq-default truncate-lines t)
@@ -376,10 +374,18 @@ Moves the custom file into a temp file, effectively making it session local
 ** Get path from shell
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
-  :commands exec-path-from-shell-initialize
+  :if (memq window-system '(mac ns x))
+  :ensure t
   :config
-  (when (memq window-system '(mac ns x))
-    (exec-path-from-shell-initialize)))
+  (exec-path-from-shell-initialize))
+#+end_src
+** Emojifi
+#+begin_src emacs-lisp
+(use-package emojify
+  :if (memq window-system '(w32))
+  :custom
+  (emojify-emoji-style '(unicode))
+  :hook (after-init . global-emojify-mode))
 #+end_src
 * Programming Modes
 ** Language Independent Settings
@@ -402,7 +408,8 @@ Moves the custom file into a temp file, effectively making it session local
   (setq electric-pair-inhibit-predicate
         (lambda (c)
           (if (char-equal c ?<) t (electric-pair-default-inhibit c))))
-  (electric-pair-mode))
+  (electric-pair-mode)
+  (setq tab-width 4))
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
@@ -414,16 +421,20 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
   :hook ((js-mode . lsp-deferred)
-         (python-mode . lsp-deferred)
-         (ruby-mode . lsp-deferred)
-         (css-mode . lsp-deferred) 
-         (web-mode . lsp-deferred)
-         (html-mode . lsp-deferred)
-         (go-mode . lsp-deferred))
+		 (python-mode . lsp-deferred)
+		 (ruby-mode . lsp-deferred)
+		 (css-mode . lsp-deferred) 
+		 (web-mode . lsp-deferred)
+		 (html-mode . lsp-deferred)
+		 (go-mode . lsp-deferred))
   :commands lsp
   :ensure treemacs
   :init
   (setq lsp-keymap-prefix "C-c l")
+  (defun lsp-go-install-save-hooks ()
+	(add-hook 'before-save-hook #'lsp-format-buffer t t)
+	(add-hook 'before-save-hook #'lsp-organize-imports t t))
+  (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
   :custom
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
@@ -465,7 +476,17 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+end_src
 ** Go
 #+begin_src emacs-lisp
-(use-package go-mode)
+(use-package go-mode
+  :config
+  
+  (defun project-find-go-module (dir)
+	(when-let ((root (locate-dominating-file dir "go.mod")))
+	  (cons 'go-module root)))
+
+  (cl-defmethod project-root ((project (head go-module)))
+	(cdr project))
+
+  (add-hook 'project-find-functions #'project-find-go-module))
 #+end_src
 ** Java
 Add a custom compile command
@@ -558,7 +579,7 @@ Add a custom compile command
 * Org Mode
 #+BEGIN_SRC emacs-lisp
 (use-package org
-  :defer t
+  :mode ("\\.org" . org-mode)
   :diminish (org-indent-mode visual-line-mode flyspell-mode)
   :ensure org-superstar
   :ensure htmlize
@@ -738,9 +759,9 @@ This is still inside the org use-package
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
 #+END_SRC
-** Company-Org
 #+begin_src emacs-lisp
 (use-package company-org-block
+  :after org
   :custom
   (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
   :hook ((org-mode . (lambda ()
