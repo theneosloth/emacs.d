@@ -3,7 +3,7 @@
 * Package Initialization and Installation
 ** Garbage Collection
 #+BEGIN_SRC emacs-lisp
-(setq use-package-compute-statistics t)
+;;(setq use-package-compute-statistics t)
 ;; Allocate more memory to the garbage collector during initialization.
 (setq gc-cons-threshold 8000000)
 ;; Reset it to the default after initialization
@@ -47,6 +47,8 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
   (package-refresh-contents))
 
 #+END_SRC
+
+#+RESULTS:
 
 ** Install use-package
 Make sure that use-package is installed and that ensure is always on so that use-package downloads every package that is not installed.
@@ -148,8 +150,13 @@ Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_o
 ** UTF-8 and Fonts
 #+BEGIN_SRC emacs-lisp
 (if (eq system-type 'windows-nt)
-    (set-face-attribute 'default nil :family "Consolas" :height 100)
+	(set-face-attribute 'default nil :family "Consolas" :height 100)
   (set-face-attribute 'default nil :family "DejaVu Sans Mono"))
+
+(set-fontset-font t 'symbol "Apple Color Emoji")
+(set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
+(set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
+(set-fontset-font t 'symbol "Symbola" nil 'append)
 
 ;;The following lines force UTF-8 whenever possible
 (setq-default buffer-file-coding-system 'utf-8-unix)
@@ -379,14 +386,6 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (exec-path-from-shell-initialize))
 #+end_src
-** Emojifi
-#+begin_src emacs-lisp
-(use-package emojify
-  :if (memq window-system '(w32))
-  :custom
-  (emojify-emoji-style '(unicode))
-  :hook (after-init . global-emojify-mode))
-#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Parens
@@ -400,6 +399,12 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package ws-butler
   :commands ws-butler-mode
   :init (add-hook 'prog-mode-hook 'ws-butler-mode))
+#+END_SRC
+*** git-gutter
+#+BEGIN_SRC emacs-lisp
+(use-package git-gutter
+  :commands git-gutter-mode
+  :hook (prog-mode . git-gutter-mode))
 #+END_SRC
 *** Misc
 #+BEGIN_SRC emacs-lisp
