@@ -186,7 +186,7 @@ Move the auto-save and backup files into the temp file directory so that emacs d
       delete-old-versions t  ; Automatically delete excess backups
       kept-new-versions 20   ; how many of the newest versions to keep
       kept-old-versions 5    ; and how many of the old
-      )
+)
 
 (setq auto-save-file-name-transforms
       `((".*" , temporary-file-directory t)))
@@ -436,19 +436,42 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   :ensure treemacs
   :init
   (setq lsp-keymap-prefix "C-c l")
-  (defun lsp-go-install-save-hooks ()
+  (defun lsp-install-save-hooks ()
 	(add-hook 'before-save-hook #'lsp-format-buffer t t)
 	(add-hook 'before-save-hook #'lsp-organize-imports t t))
-  (add-hook 'go-mode-hook #'lsp-go-install-save-hooks)
+  (add-hook 'go-mode-hook #'lsp-install-save-hooks)
+  (add-hook 'python-mode-hook #'lsp-install-save-hooks)
+  :config
+  (setq lsp-auto-guess-root t)
+  (lsp-register-custom-settings
+   '(("pyls.plugins.pyls_mypy.enabled" t t)
+     ("pyls.plugins.pyls_mypy.live_mode" nil t)
+     ("pyls.plugins.pyls_black.enabled" t t)
+	 ("pyls.plugins.pyls_isort.enabled" t t)))
   :custom
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
   (lsp-headerline-breadcrumb-mode-enable nil))
 
-(use-package lsp-ui :commands lsp-ui-mode)
+(use-package lsp-ui
+  :commands lsp-ui-mode
+  :config
+  (setq lsp-ui-doc-header t)
+  (setq lsp-ui-doc-include-signature t)
+  (setq lsp-ui-sideline-show-code-actions t))
 (use-package lsp-treemacs :commands lsp-treemacs-errors-list)
 #+END_SRC
 
+** Fsharp
+#+begin_src emacs-lisp
+(use-package fsharp-mode
+  :after lsp)
+#+end_src
+** Python
+#+begin_src emacs-lisp
+(use-package poetry
+  :hook ((python-mode . poetry-tracking-mode)))
+#+end_src
 ** Tree Sitter
 #+begin_src emacs-lisp
 (use-package tree-sitter
