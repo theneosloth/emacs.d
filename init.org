@@ -290,6 +290,7 @@ Moves the custom file into a temp file, effectively making it session local
   :diminish undo-tree-mode
   :ensure undo-tree
   :init
+  (setq undo-tree-auto-save-history nil)
   (setq evil-undo-system 'undo-tree)
   :config
   (evil-mode 1)
@@ -335,27 +336,34 @@ Moves the custom file into a temp file, effectively making it session local
 #+END_SRC
 ** Company
 #+BEGIN_SRC emacs-lisp
-(use-package company
-  :defer 10
-  :diminish company-mode
-  :init (global-company-mode t)
-  :bind (:map company-active-map
-              ("<tab>" . company-select-next)
-              ("<backtab>" . company-select-previous)
-              ("RET" . nil))
+(use-package corfu
+  ;; TAB-and-Go customizations
+  :custom
+  (corfu-auto t)
+  (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
+  (corfu-preselect-first nil) ;; Disable candidate preselection
+
+  ;; Use TAB for cycling, default is `corfu-complete'.
+  :bind
+  (:map corfu-map
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous))
+
+  :init
+  (corfu-global-mode))
+
+(use-package kind-icon
+  :after corfu
+  :custom
+  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   :config
-  (add-hook 'eshell-mode-hook #'(lambda () (company-mode -1)))
-  (add-hook 'after-init-hook 'company-tng-mode)
-  ;; no delay on autocomplete
-  (setq
-   company-idle-delay 0
-   company-minimum-prefix-length 2
-   company-tooltip-limit 20))
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+END_SRC
 ** Auctex
 #+BEGIN_SRC emacs-lisp
 (use-package auctex
-  :ensure company-auctex
   :mode (("\\.tex$" . LaTeX-mode)
          ("\\.latex$" . LaTeX-mode))
 
@@ -363,8 +371,7 @@ Moves the custom file into a temp file, effectively making it session local
   (setq TeX-PDF-mode t)
   (setq TeX-auto-save t)
   (add-hook 'latex-mode-hook 'turn-on-auto-fill)
-  (add-hook 'latex-mode-hook 'visual-line-mode)
-  (company-auctex-init))
+  (add-hook 'latex-mode-hook 'visual-line-mode))
 #+END_SRC
 
 ** Magit
@@ -431,7 +438,9 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 		 (css-mode . lsp-deferred) 
 		 (web-mode . lsp-deferred)
 		 (html-mode . lsp-deferred)
-		 (go-mode . lsp-deferred))
+		 (go-mode . lsp-deferred)
+		 (lsp-completion-mode . my/lsp-mode-setup-completion))
+  
   :commands lsp
   :ensure treemacs
   :init
@@ -441,14 +450,19 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 	(add-hook 'before-save-hook #'lsp-organize-imports t t))
   (add-hook 'go-mode-hook #'lsp-install-save-hooks)
   (add-hook 'python-mode-hook #'lsp-install-save-hooks)
+  (defun my/lsp-mode-setup-completion ()
+	(setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+		  '(flex))) ;; Configure flex
+  
   :config
   (setq lsp-auto-guess-root t)
   (lsp-register-custom-settings
    '(("pyls.plugins.pyls_mypy.enabled" t t)
-     ("pyls.plugins.pyls_mypy.live_mode" nil t)
-     ("pyls.plugins.pyls_black.enabled" t t)
+	 ("pyls.plugins.pyls_mypy.live_mode" nil t)
+	 ("pyls.plugins.pyls_black.enabled" t t)
 	 ("pyls.plugins.pyls_isort.enabled" t t)))
   :custom
+  (lsp-completion-provider :none) ;; we use Corfu!
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
   (lsp-headerline-breadcrumb-mode-enable nil))
@@ -787,15 +801,6 @@ This is still inside the org use-package
      ("s" "Scheduled" entry (file+headline org-todo-location "Events")
       "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
 #+END_SRC
-#+begin_src emacs-lisp
-(use-package company-org-block
-  :after org
-  :custom
-  (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
-  :hook ((org-mode . (lambda ()
-                       (setq-local company-backends '(company-org-block))
-                       (company-mode +1)))))
-#+end_src
 
 ** Export Backends
 *** ox-slack
