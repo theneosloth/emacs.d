@@ -48,8 +48,6 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 
 #+END_SRC
 
-#+RESULTS:
-
 ** Install use-package
 Make sure that use-package is installed and that ensure is always on so that use-package downloads every package that is not installed.
 #+BEGIN_SRC emacs-lisp
@@ -463,6 +461,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 	 ("pyls.plugins.pyls_isort.enabled" t t)))
   :custom
   (lsp-completion-provider :none) ;; we use Corfu!
+  ;; (lsp-pylsp-server-command `("poetry" "run" "pylsp")) 
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
   (lsp-headerline-breadcrumb-mode-enable nil))
@@ -483,8 +482,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+end_src
 ** Python
 #+begin_src emacs-lisp
-(use-package poetry
-  :hook ((python-mode . poetry-tracking-mode)))
+(use-package pyvenv-auto
+  :hook ((python-mode . pyvenv-auto-mode)))
 #+end_src
 ** Tree Sitter
 #+begin_src emacs-lisp
