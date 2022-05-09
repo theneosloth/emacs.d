@@ -350,7 +350,7 @@ Moves the custom file into a temp file, effectively making it session local
         ([backtab] . corfu-previous))
 
   :init
-  (corfu-global-mode))
+  (global-corfu-mode))
 
 (use-package kind-icon
   :after corfu
@@ -461,7 +461,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 	 ("pyls.plugins.pyls_isort.enabled" t t)))
   :custom
   (lsp-completion-provider :none) ;; we use Corfu!
-  ;; (lsp-pylsp-server-command `("poetry" "run" "pylsp")) 
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
   (lsp-headerline-breadcrumb-mode-enable nil))
