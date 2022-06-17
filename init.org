@@ -454,13 +454,14 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   
   :config
   (setq lsp-auto-guess-root t)
+  (setq lsp-enable-snippet nil)
   (lsp-register-custom-settings
    '(("pyls.plugins.pyls_mypy.enabled" t t)
-	 ("pyls.plugins.pyls_mypy.live_mode" nil t)
-	 ("pyls.plugins.pyls_black.enabled" t t)
+	 ("pyls.plugins.black.enabled" t t)
 	 ("pyls.plugins.pyls_isort.enabled" t t)))
   :custom
   (lsp-completion-provider :none) ;; we use Corfu!
+  ;; (lsp-pylsp-server-command `("poetry" "run" "pylsp")) 
   (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
   (lsp-modeline-code-actions-segments '(name count))
   (lsp-headerline-breadcrumb-mode-enable nil))
