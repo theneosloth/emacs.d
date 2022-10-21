@@ -391,6 +391,14 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (exec-path-from-shell-initialize))
 #+end_src
+** Flymake
+#+begin_src emacs-lisp
+(use-package flymake
+  :ensure nil
+  :config
+  (define-key evil-normal-state-map (kbd "C-j") 'flymake-goto-next-error)
+  (define-key evil-normal-state-map (kbd "C-k") 'flymake-goto-prev-error))
+#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Parens
@@ -424,12 +432,28 @@ Moves the custom file into a temp file, effectively making it session local
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
 
+** Eglot
+#+begin_src emacs-lisp
+(use-package eglot
+  :hook ((js-mode . eglot-ensure)
+         (python-mode . eglot-ensure)
+         (html-mode . eglot-ensure)
+         (css-mode . eglot-ensure))
+  :init
+  (add-hook 'before-save-hook #'eglot-format-buffer)
+  :config
+  ;; enable corfu
+  (setq completion-category-defaults nil)
+  (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
+  (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
+#+end_src
 ** LSP
 Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
 
 *** lsp-mode
 #+BEGIN_SRC emacs-lisp
 (use-package lsp-mode
+  :disabled t
   :hook ((js-mode . lsp-deferred)
 		 (python-mode . lsp-deferred)
 		 (ruby-mode . lsp-deferred)
@@ -467,12 +491,13 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   (lsp-headerline-breadcrumb-mode-enable nil))
 
 (use-package lsp-ui
+  :disabled t
   :commands lsp-ui-mode
   :config
   (setq lsp-ui-doc-header t)
   (setq lsp-ui-doc-include-signature t)
   (setq lsp-ui-sideline-show-code-actions t))
-(use-package lsp-treemacs :commands lsp-treemacs-errors-list)
+(use-package lsp-treemacs :disabled t :commands lsp-treemacs-errors-list)
 #+END_SRC
 
 ** Fsharp
@@ -591,6 +616,11 @@ Add a custom compile command
          ("\\.markdown\\'" . markdown-mode))
   :custom (markdown-command "multimarkdown"))
 #+END_SRC
+** Haskell
+#+begin_src emacs-lisp
+(use-package haskell-mode)
+(use-package lsp-haskell)
+#+end_src
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
@@ -610,12 +640,6 @@ Add a custom compile command
   :commands (restclient-mode)
   :mode (("\\.rest$" . restclient-mode))
   :init (add-to-list 'org-babel-load-languages '(restclient . t)))
-#+end_src
-** Flycheck
-#+begin_src emacs-lisp
-(use-package flycheck
-  :init
-  (global-flycheck-mode))
 #+end_src
 * Org Mode
 #+BEGIN_SRC emacs-lisp
@@ -687,6 +711,7 @@ Add a custom compile command
    'org-babel-load-languages
    '((python . t)
      (java . t)
+     (haskell . t)
      (calc . t)
      (lisp . t)
      (shell . t)
