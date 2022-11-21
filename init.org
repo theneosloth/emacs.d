@@ -248,21 +248,20 @@ Moves the custom file into a temp file, effectively making it session local
 * Custom Packages
 ** Vertico
 #+begin_src emacs-lisp
-(use-package selectrum
+(use-package vertico
   :init
-  (selectrum-mode)
-  :config
-  (defun selectrum-fido-backward-updir ()
-    "Delete char before or go up directory, like `ido-mode'."
-    (interactive)
-    (if (and (eq (char-before) ?/)
-             (eq (selectrum--get-meta 'category) 'file))
-        (save-excursion
-          (goto-char (1- (point)))
-          (when (search-backward "/" (point-min) t)
-            (delete-region (1+ (point)) (point-max))))
-      (call-interactively 'backward-delete-char)))
-  (define-key selectrum-minibuffer-map (kbd "DEL") 'selectrum-fido-backward-updir))
+  (vertico-mode))
+;; Configure directory extension.
+(use-package vertico-directory
+  :after vertico
+  :ensure nil
+  ;; More convenient directory navigation commands
+  :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
+              ("M-DEL" . vertico-directory-delete-word))
+  ;; Tidy shadowed file names
+  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
 
 (use-package marginalia
   :init
@@ -502,8 +501,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
 ** Fsharp
 #+begin_src emacs-lisp
-(use-package fsharp-mode
-  :after lsp)
+(use-package fsharp-mode)
 #+end_src
 ** Python
 #+begin_src emacs-lisp
@@ -618,8 +616,13 @@ Add a custom compile command
 #+END_SRC
 ** Haskell
 #+begin_src emacs-lisp
-(use-package haskell-mode)
-(use-package lsp-haskell)
+(use-package haskell-mode
+  :hook (haskell-mode . haskell-indentation-mode)
+  :hook (haskell-mode . haskell-doc-mode)
+  :bind (:map haskell-mode-map
+			  ("C-c C-l" . haskell-process-load-or-reload)
+			  ("C-c C-t" . haskell-process-do-type)
+			  ("C-c C-i" . haskell-process-do-info)))
 #+end_src
 ** Sly
 #+BEGIN_SRC emacs-lisp
