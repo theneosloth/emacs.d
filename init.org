@@ -112,6 +112,8 @@ Make sure that use-package is installed and that ensure is always on so that use
 ;;Speeds up process reads
 (setq read-process-output-max (* 1024 1024)) ;; 1mb
 
+(add-hook 'prog-mode-hook 'subword-mode)
+
 (use-package whitespace
   :ensure nil
   :bind ("C-c w" . whitespace-mode)
@@ -196,7 +198,6 @@ Move the auto-save and backup files into the temp file directory so that emacs d
 
 (setq auto-save-file-name-transforms
       `((".*" , temporary-file-directory t)))
-
 #+END_SRC
 ** Startup Message and Screen
 #+BEGIN_SRC emacs-lisp
@@ -209,7 +210,6 @@ Move the auto-save and backup files into the temp file directory so that emacs d
 
 (defun display-startup-echo-area-message()
   (message (emacs-init-time)))
-
 #+END_SRC
 ** Dired
 *** Dired quick copy/paste
@@ -387,7 +387,6 @@ Moves the custom file into a temp file, effectively making it session local
 ** Editorconfig
 #+begin_src emacs-lisp
 (use-package editorconfig
-  :ensure t
   :config
   (setq editorconfig-trim-whitespaces-mode
                 'ws-butler-mode)
@@ -523,8 +522,11 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+end_src
 ** Python
 #+begin_src emacs-lisp
+(use-package python-mode
+  :ensure t)
+
 (use-package pyvenv-auto
-  :hook ((python-mode . pyvenv-auto-mode)))
+  :hook ((python-mode . pyvenv-auto-run)))
 #+end_src
 ** Scala
 #+begin_src emacs-lisp
@@ -548,10 +550,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 (use-package tree-sitter-langs
   :after tree-sitter)
 #+end_src
-** Json
-#+begin_src emacs-lisp
-(use-package json-mode)
-#+end_src
 ** Ruby
 #+begin_src emacs-lisp
 (use-package chruby
@@ -572,7 +570,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 #+begin_src emacs-lisp
 (use-package go-mode
   :config
-  
+
   (defun project-find-go-module (dir)
         (when-let ((root (locate-dominating-file dir "go.mod")))
           (cons 'go-module root)))
@@ -590,7 +588,7 @@ Add a custom compile command
           (lambda ()
             (set (make-local-variable 'compile-command)
                  (let ((file (file-name-nondirectory buffer-file-name)))
-                   (format "javac %s" 
+                   (format "javac %s"
                            file)))))
 #+END_SRC
 ** C-Mode
@@ -614,7 +612,7 @@ Add a custom compile command
 ** Javascript
 *** Typescript
 #+begin_src emacs-lisp
-(add-to-list 'auto-mode-alist 
+(add-to-list 'auto-mode-alist
              '("\\.ts\\'" . js-mode))
 #+end_src
 ** Web/HTML
@@ -673,6 +671,10 @@ Add a custom compile command
   :commands (restclient-mode)
   :mode (("\\.rest$" . restclient-mode))
   :init (add-to-list 'org-babel-load-languages '(restclient . t)))
+#+end_src
+** Nix
+#+begin_src emacs-lisp
+(use-package nix-mode)
 #+end_src
 * Org Mode
 
@@ -851,6 +853,9 @@ This is still inside the org use-package
   (org-capture-templates
    '(("t" "Todo" entry (file+headline org-todo-location "Tasks")
       "* TODO %?\n  %i\n  %a")
+	 ("j" "Journal" entry (file+datetree "~/Sync/Notes/journal.org")
+      "* %?"
+	  :empty-lines 1)
      ("p" "Clipboard" entry (file+headline org-todo-location "Links")
       "* %?\n %x")
      ("c" "Contact" entry (file+headline "~/Sync/Notes/contacts.org" "Contacts"),
