@@ -50,11 +50,12 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 ** Install use-package
 Make sure that use-package is installed and that ensure is always on so that use-package downloads every package that is not installed.
 #+BEGIN_SRC emacs-lisp
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
 (setq use-package-always-ensure t)
 #+END_SRC
+** Install quelpa
+#+begin_src emacs-lisp
+(use-package quelpa-use-package)
+#+end_src
 * Misc options
 ** Startup with tramp
 #+BEGIN_SRC emacs-lisp
@@ -81,6 +82,8 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-set-key (kbd "C-c v") 'visual-line-mode)
 
 (global-set-key (kbd "<f8>") 'compile)
+
+(setq tab-always-indent 'complete)
 #+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
@@ -172,10 +175,13 @@ Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_o
 #+END_SRC
 ** Dos2Unix
 #+BEGIN_SRC emacs-lisp
-(defun dos2unix ()
-  "Replace DOS eolns CR LF with Unix eolns CR"
-  (interactive)
-  (set-buffer-file-coding-system 'unix))
+(defun dos2unix (buffer)
+  "Automate M-% C-q C-m RET C-q C-j RET"
+  (interactive "*b")
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward (string ?\C-m) nil t)
+      (replace-match (string ?\C-j) nil t))))
 #+END_SRC
 ** Clipboard
 #+BEGIN_SRC emacs-lisp
@@ -322,7 +328,8 @@ Moves the custom file into a temp file, effectively making it session local
 
 (use-package lispyville
   :hook ((lisp-mode . lispyville-mode)
-         (emacs-lisp-mode . lispyville-mode))
+         (emacs-lisp-mode . lispyville-mode)
+         (clojure-mode . lispyville-mode))
   :config
   (lispyville-set-key-theme '(operators c-w additional slurp/barf-cp)))
 #+END_SRC
@@ -450,6 +457,7 @@ Moves the custom file into a temp file, effectively making it session local
 ** Eglot
 #+begin_src emacs-lisp
 (use-package eglot
+  :ensure nil
   :hook ((js-mode . eglot-ensure)
                  (python-mode . eglot-ensure)
                  (html-mode . eglot-ensure)
@@ -518,7 +526,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
 ** Fsharp
 #+begin_src emacs-lisp
-(use-package fsharp-mode)
+(use-package fsharp-mode
+  :disabled t)
 #+end_src
 ** Python
 #+begin_src emacs-lisp
@@ -528,6 +537,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 (use-package pyvenv-auto
   :hook ((python-mode . pyvenv-auto-run)))
 #+end_src
+
 ** Scala
 #+begin_src emacs-lisp
 (use-package scala-mode
@@ -543,18 +553,30 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Tree Sitter
 #+begin_src emacs-lisp
 (use-package tree-sitter
+  :ensure nil
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
 (use-package tree-sitter-langs
   :after tree-sitter)
+
+(use-package tree-sitter-indent
+  :after tree-sitter)
 #+end_src
 ** Ruby
 #+begin_src emacs-lisp
+  (use-package ruby-ts-mode
+    :mode "\\.rb\\'"
+    :mode "Rakefile\\'"
+    :mode "Gemfile\\'")
+
 (use-package chruby
   :commands chruby-use-corresponding
   :hook ((ruby-mode . chruby-use-corresponding)))
+
+(use-package inf-ruby
+  :after ruby)
 #+end_src
 
 ** Yaml
@@ -658,6 +680,10 @@ Add a custom compile command
   :custom (inferior-lisp-program "ros -Q run"))
 #+END_SRC
 
+** Cider
+#+BEGIN_SRC emacs-lisp
+(use-package cider)
+#+END_SRC
 ** Very Large files
 #+begin_src emacs-lisp
 (if (version<= "27.1" emacs-version)
@@ -676,6 +702,22 @@ Add a custom compile command
 #+begin_src emacs-lisp
 (use-package nix-mode)
 #+end_src
+** Direnv
+#+begin_src emacs-lisp
+(unless (eq system-type 'windows-nt)
+  (use-package envrc
+    :config
+    (envrc-global-mode)))
+#+end_src
+** Gleam
+#+begin_src emacs-lisp
+(use-package gleam-mode
+  :quelpa (gleam-mode :fetcher github :repo "gleam-lang/gleam-mode"))
+#+end_src
+** Ansible
+#+begin_src emacs-lisp
+(use-package ansible)
+#+end_src
 * Org Mode
 
 #+BEGIN_SRC emacs-lisp
@@ -684,6 +726,7 @@ Add a custom compile command
   :diminish (org-indent-mode visual-line-mode flyspell-mode)
   :ensure org-superstar
   :ensure htmlize
+  :defer t
   :config
   (progn
     (setq org-src-preserve-indentation nil
@@ -847,6 +890,7 @@ This is still inside the org use-package
 ** Org Capture
 #+BEGIN_SRC emacs-lisp
 (use-package org-capture
+  :disabled t
   :ensure nil
   :after org
   :custom
@@ -867,6 +911,7 @@ This is still inside the org use-package
 ** Org-present
 #+begin_src emacs-lisp
 (use-package org-present
+  :disabled t
   :after org)
 #+end_src
 ** Export Backends
