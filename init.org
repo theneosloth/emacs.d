@@ -97,6 +97,9 @@ Make sure that use-package is installed and that ensure is always on so that use
 
 (menu-bar-mode -1)
 
+;; Always treat tabs as spaces
+(setq-default indent-tabs-mode nil)
+
 ;;Truncate lines instead of word wrapping them
 (setq-default truncate-lines t)
 ;; Use y or n instead of yes or no
@@ -421,6 +424,11 @@ Moves the custom file into a temp file, effectively making it session local
   (define-key evil-normal-state-map (kbd "C-j") 'flymake-goto-next-error)
   (define-key evil-normal-state-map (kbd "C-k") 'flymake-goto-prev-error))
 #+end_src
+** Rainbow-delimiters
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :hook ((lisp-mode . rainbow-delimiters-mode)))
+#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Parens
@@ -677,7 +685,14 @@ Add a custom compile command
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
-  :custom (inferior-lisp-program "ros -Q run"))
+  :init
+  (with-eval-after-load 'sly-mrepl
+    (define-key sly-mrepl-mode-map (kbd "<C-up>") 'sly-mrepl-previous-input-or-button)
+    (define-key sly-mrepl-mode-map (kbd "<C-down>") 'sly-mrepl-next-input-or-button))
+
+  :config
+    (setq sly-lisp-implementations
+          '((qlot ("qlot" "exec" "sbcl") :coding-system utf-8-unix))))
 #+END_SRC
 
 ** Cider
