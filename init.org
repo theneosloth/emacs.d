@@ -123,7 +123,8 @@ Make sure that use-package is installed and that ensure is always on so that use
 (use-package whitespace
   :ensure nil
   :bind ("C-c w" . whitespace-mode)
-  :hook (prog-mode . whitespace-mode)
+  :init
+  (global-whitespace-mode)
   :config
   (setq whitespace-style '(face tabs spaces trailing space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof)))
 #+END_SRC
@@ -267,7 +268,23 @@ Moves the custom file into a temp file, effectively making it session local
 #+begin_src emacs-lisp
 (use-package vertico
   :init
-  (vertico-mode))
+  (vertico-mode 1)
+  (vertico-multiform-mode 1)
+  :config
+  (setq vertico-multiform-commands
+    '((consult-line buffer)
+      (consult-line-thing-at-point buffer)
+      (consult-recent-file buffer)
+      (consult-mode-command buffer)
+      (consult-complex-command buffer)
+      (embark-bindings buffer)
+      (consult-locate buffer)
+      (consult-project-buffer buffer)
+      (consult-ripgrep buffer)
+      (consult-fd buffer)))
+  :bind (:map vertico-map
+          ("M-<return>" . minibuffer-force-complete-and-exit)))
+
 ;; Configure directory extension.
 (use-package vertico-directory
   :after vertico
@@ -566,8 +583,10 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-(use-package tree-sitter-langs
-  :after tree-sitter)
+
+(use-package treesit-auto
+  :config
+  (global-treesit-auto-mode))
 
 (use-package tree-sitter-indent
   :after tree-sitter)
