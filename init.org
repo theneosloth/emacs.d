@@ -54,7 +54,8 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+END_SRC
 ** Install quelpa
 #+begin_src emacs-lisp
-(use-package quelpa-use-package)
+(use-package quelpa-use-package
+  :disabled t)
 #+end_src
 * Misc options
 ** Startup with tramp
@@ -414,6 +415,7 @@ Moves the custom file into a temp file, effectively making it session local
 ** Editorconfig
 #+begin_src emacs-lisp
 (use-package editorconfig
+  :disabled t
   :config
   (setq editorconfig-trim-whitespaces-mode
                 'ws-butler-mode)
@@ -444,6 +446,7 @@ Moves the custom file into a temp file, effectively making it session local
 ** Rainbow-delimiters
 #+begin_src emacs-lisp
 (use-package rainbow-delimiters
+  :disabled t
   :hook ((lisp-mode . rainbow-delimiters-mode)))
 #+end_src
 * Programming Modes
@@ -566,10 +569,12 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Scala
 #+begin_src emacs-lisp
 (use-package scala-mode
+  :disabled t
   :interpreter ("scala" . scala-mode))
 
 ;; Enable sbt mode for executing sbt commands
 (use-package sbt-mode
+  :disabled t
   :commands sbt-start sbt-command
   :config
   ;; sbt-supershell kills sbt-mode:  https://github.com/hvesalai/emacs-sbt-mode/issues/152
@@ -694,6 +699,7 @@ Add a custom compile command
 ** Haskell
 #+begin_src emacs-lisp
 (use-package haskell-mode
+  :disabled t
   :hook (haskell-mode . haskell-indentation-mode)
   :hook (haskell-mode . haskell-doc-mode)
   :bind (:map haskell-mode-map
@@ -716,7 +722,8 @@ Add a custom compile command
 
 ** Cider
 #+BEGIN_SRC emacs-lisp
-(use-package cider)
+(use-package cider
+  :disabled t)
 #+END_SRC
 ** Very Large files
 #+begin_src emacs-lisp
@@ -746,6 +753,7 @@ Add a custom compile command
 ** Gleam
 #+begin_src emacs-lisp
 (use-package gleam-mode
+  :disabled t
   :quelpa (gleam-mode :fetcher github :repo "gleam-lang/gleam-mode"))
 #+end_src
 ** Ansible
