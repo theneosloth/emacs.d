@@ -5,9 +5,11 @@
 #+BEGIN_SRC emacs-lisp
 ;;(setq use-package-compute-statistics t)
 ;; Allocate more memory to the garbage collector during initialization.
-(setq gc-cons-threshold 8000000)
+(setq gc-cons-threshold (* 50 1000 1000))
+;; Portion of heap used for allocation.  Defaults to 0.1.
+(setq gc-cons-percentage 0.6)
 ;; Reset it to the default after initialization
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold 800000)))
+(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000))))
 #+END_SRC
 
 ** Automatic tangling
@@ -27,24 +29,14 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 #+END_SRC
 ** MELPA
 #+BEGIN_SRC emacs-lisp
-(unless (eq system-type 'windows-nt)
-  (setq tlc-checktrust t))
-
 (when (>= emacs-major-version 24)
-  (require 'package)
-
   (add-to-list
    'package-archives
    '("org" . "http://orgmode.org/elpa/") t)
 
   (add-to-list
    'package-archives
-   '("melpa" . "http://melpa.org/packages/") t)
-
-  (package-initialize))
-
-(unless package-archive-contents
-  (package-refresh-contents))
+   '("melpa" . "http://melpa.org/packages/") t))
 #+END_SRC
 
 ** Install use-package
@@ -124,8 +116,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 (use-package whitespace
   :ensure nil
   :bind ("C-c w" . whitespace-mode)
-  :init
-  (global-whitespace-mode)
+  :hook ((prog-mode . whitespace-mode))
   :config
   (setq whitespace-style '(face tabs spaces trailing space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof)))
 #+END_SRC
@@ -140,28 +131,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 (unless (eq system-type 'windows-nt)
   (global-prettify-symbols-mode)
   (setq prettify-symbols-unprettify-at-point 'right-edge))
-#+END_SRC
-** Open eshell in current window
-Credit goes to [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/cfugwkt][/u/howardabrams]] and [[https://www.reddit.com/r/emacs/comments/1zkj2d/advanced_usage_of_eshell/cfuuo5y][/u/AndersBakken]]
-#+BEGIN_SRC emacs-lisp
-(defun eshell-here ()
-  "Opens up a new shell in the directory associated with the current buffer's file."
-  (interactive)
-  (let* ((parent (if (buffer-file-name)
-                     (file-name-directory (buffer-file-name))
-                   default-directory))
-         (name (car (last (split-string parent "/" t)))))
-    (split-window-vertically)
-    (other-window 1)
-    (eshell)
-    (rename-buffer (concat "Eshell: " name))
-    (insert (concat "ls"))
-    (eshell-send-input)))
-
-(global-set-key (kbd "C-c s") 'eshell-here)
-
-(defun eshell/x ()
-  (kill-buffer-and-window))
 #+END_SRC
 ** UTF-8 and Fonts
 #+BEGIN_SRC emacs-lisp
@@ -329,6 +298,7 @@ Moves the custom file into a temp file, effectively making it session local
   ;;Disable evil in these modes
   (evil-set-initial-state 'erc-mode 'emacs)
   (evil-set-initial-state 'message-mode 'emacs)
+  (evil-set-initial-state 'sqlite-mode 'emacs)
   (global-undo-tree-mode))
 
 (use-package evil-matchit
@@ -412,21 +382,6 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package magit
   :bind ("C-c g" . magit-status))
 #+END_SRC
-** Editorconfig
-#+begin_src emacs-lisp
-(use-package editorconfig
-  :disabled t
-  :config
-  (setq editorconfig-trim-whitespaces-mode
-                'ws-butler-mode)
-  (editorconfig-mode 1))
-#+end_src
-** Langtool
-#+BEGIN_SRC emacs-lisp
-(use-package langtool
-  :commands langtool-check
-  :custom (langtool-language-tool-jar "~/Sync/Misc/LanguageTool-4.3/languagetool-commandline.jar"))
-#+END_SRC
 ** Get path from shell
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
@@ -442,12 +397,6 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (define-key evil-normal-state-map (kbd "C-j") 'flymake-goto-next-error)
   (define-key evil-normal-state-map (kbd "C-k") 'flymake-goto-prev-error))
-#+end_src
-** Rainbow-delimiters
-#+begin_src emacs-lisp
-(use-package rainbow-delimiters
-  :disabled t
-  :hook ((lisp-mode . rainbow-delimiters-mode)))
 #+end_src
 * Programming Modes
 ** Language Independent Settings
@@ -476,8 +425,7 @@ Moves the custom file into a temp file, effectively making it session local
   (setq electric-pair-inhibit-predicate
         (lambda (c)
           (if (char-equal c ?<) t (electric-pair-default-inhibit c))))
-  (electric-pair-mode)
-  (setq tab-width 4))
+  (electric-pair-mode))
 
 (add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
 #+END_SRC
@@ -499,59 +447,6 @@ Moves the custom file into a temp file, effectively making it session local
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
 #+end_src
-** LSP
-Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[https://github.com/sourcegraph/javascript-typescript-langserver][javascript-typescript-language-server]] and [[https://github.com/Microsoft/vscode/tree/master/extensions/html-language-features/server][html-language-server]]
-
-*** lsp-mode
-#+BEGIN_SRC emacs-lisp
-(use-package lsp-mode
-  :disabled t
-  :hook ((js-mode . lsp-deferred)
-                 (python-mode . lsp-deferred)
-                 (ruby-mode . lsp-deferred)
-                 (css-mode . lsp-deferred)
-                 (web-mode . lsp-deferred)
-                 (html-mode . lsp-deferred)
-                 (go-mode . lsp-deferred)
-                 (lsp-completion-mode . my/lsp-mode-setup-completion))
-
-  :commands lsp
-  :ensure treemacs
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  (defun lsp-install-save-hooks ()
-        (add-hook 'before-save-hook #'lsp-format-buffer t t)
-        (add-hook 'before-save-hook #'lsp-organize-imports t t))
-  (add-hook 'go-mode-hook #'lsp-install-save-hooks)
-  (add-hook 'python-mode-hook #'lsp-install-save-hooks)
-  (defun my/lsp-mode-setup-completion ()
-        (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-                  '(flex))) ;; Configure flex
-
-  :config
-  (setq lsp-auto-guess-root t)
-  (setq lsp-enable-snippet nil)
-  (lsp-register-custom-settings
-   '(("pyls.plugins.pyls_mypy.enabled" t t)
-         ("pyls.plugins.black.enabled" t t)
-         ("pyls.plugins.pyls_isort.enabled" t t)))
-  :custom
-  (lsp-completion-provider :none) ;; we use Corfu!
-  ;; (lsp-pylsp-server-command `("poetry" "run" "pylsp"))
-  (lsp-clients-typescript-server-args `("--stdio" "--tsserver-log-file" ,(expand-file-name (concat (temporary-file-directory) ".tslog"))))
-  (lsp-modeline-code-actions-segments '(name count))
-  (lsp-headerline-breadcrumb-mode-enable nil))
-
-(use-package lsp-ui
-  :disabled t
-  :commands lsp-ui-mode
-  :config
-  (setq lsp-ui-doc-header t)
-  (setq lsp-ui-doc-include-signature t)
-  (setq lsp-ui-sideline-show-code-actions t))
-(use-package lsp-treemacs :disabled t :commands lsp-treemacs-errors-list)
-#+END_SRC
-
 ** Fsharp
 #+begin_src emacs-lisp
 (use-package fsharp-mode
@@ -560,6 +455,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Python
 #+begin_src emacs-lisp
 (use-package python-mode
+  :mode ("\\.py\\'" . python-mode)
   :ensure t)
 
 (use-package pyvenv-auto
@@ -591,6 +487,7 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
 (use-package treesit-auto
   :config
+  (setq treesit-auto-install 'prompt)
   (global-treesit-auto-mode))
 
 (use-package tree-sitter-indent
@@ -623,8 +520,8 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 ** Go
 #+begin_src emacs-lisp
 (use-package go-mode
+  :mode ("\\.go\\'" . go-mode)
   :config
-
   (defun project-find-go-module (dir)
         (when-let ((root (locate-dominating-file dir "go.mod")))
           (cons 'go-module root)))
@@ -634,17 +531,6 @@ Dependent on [[https://github.com/palantir/python-language-server][pyls]], [[htt
 
   (add-hook 'project-find-functions #'project-find-go-module))
 #+end_src
-** Java
-Add a custom compile command
-
-#+BEGIN_SRC emacs-lisp
-(add-hook 'java-mode-hook
-          (lambda ()
-            (set (make-local-variable 'compile-command)
-                 (let ((file (file-name-nondirectory buffer-file-name)))
-                   (format "javac %s"
-                           file)))))
-#+END_SRC
 ** C-Mode
 *** Indentation
 #+BEGIN_SRC emacs-lisp
@@ -654,14 +540,6 @@ Add a custom compile command
         c-indent-level 4
         c-default-style "linux"))
 (add-hook 'c-mode-common-hook 'indent-c-mode-hook)
-
-(defun cpp-compile-command ()
-  (set (make-local-variable 'compile-command)
-       (let ((file (file-name-nondirectory buffer-file-name)))
-         (format "g++ -pedantic -Wall -Wextra %s"
-                 file))))
-
-(add-hook 'c-mode-common-hook 'cpp-compile-command)
 #+END_SRC
 ** Javascript
 *** Typescript
@@ -676,16 +554,6 @@ Add a custom compile command
   :hook (js-mode html-mode sgml-mode mhtml-mode ts-mode web-mode)
   :config
   (setq emmet-move-cursor-between-quotes t))
-
-(use-package web-mode
-  :mode (("\\.component.ts\\'" . web-mode)
-         ("\\.tsx\\'" . web-mode)
-         ("\\.jsx\\'" . web-mode)
-         ("\\.module.ts\\'" . web-mode)
-         ("\\.component.html\\'" . web-mode)
-         ("\\.vue\\'" . web-mode)
-         ("\\.ejs\\'" . web-mode))
-  :commands web-mode)
 #+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
@@ -710,6 +578,7 @@ Add a custom compile command
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
+  :mode (("\\.lisp\\'" . sly-mode))
   :init
   (with-eval-after-load 'sly-mrepl
     (define-key sly-mrepl-mode-map (kbd "<C-up>") 'sly-mrepl-previous-input-or-button)
@@ -730,15 +599,6 @@ Add a custom compile command
 (if (version<= "27.1" emacs-version)
     (global-so-long-mode 1))
 #+end_src
-** Restclient
-#+begin_src emacs-lisp
-(use-package restclient
-  :ensure ob-restclient
-  :after org
-  :commands (restclient-mode)
-  :mode (("\\.rest$" . restclient-mode))
-  :init (add-to-list 'org-babel-load-languages '(restclient . t)))
-#+end_src
 ** Nix
 #+begin_src emacs-lisp
 (use-package nix-mode)
@@ -758,14 +618,15 @@ Add a custom compile command
 #+end_src
 ** Ansible
 #+begin_src emacs-lisp
-(use-package ansible)
+(use-package ansible
+  :disabled t)
 #+end_src
 * Org Mode
 
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :mode ("\\.org" . org-mode)
-  :diminish (org-indent-mode visual-line-mode flyspell-mode)
+  :diminish (org-indent-mode visual-line-mode)
   :ensure org-superstar
   :ensure htmlize
   :defer t
@@ -786,13 +647,7 @@ Add a custom compile command
           org-list-allow-alphabetical t
           ;; requires superscripts to use groups ({})
           org-use-sub-superscripts nil
-          org-export-with-toc nil
-          org-notes-location "~/Sync/Notes/"
-          org-todo-location (expand-file-name
-                             (concat org-notes-location "agenda.org"))
-          org-default-notes-file org-todo-location
-          org-agenda-include-diary t
-          org-agenda-files (list org-todo-location))
+          org-export-with-toc nil)
 
     ;; org-src config
     (setq
@@ -807,20 +662,8 @@ Add a custom compile command
     (add-hook 'org-shiftdown-final-hook 'windmove-down)
     (add-hook 'org-shiftright-final-hook 'windmove-right)
 
-
-
     ;; Org-publish config
     (setq org-html-validation-link nil)
-
-    (add-hook 'org-mode-hook 'flyspell-mode)
-
-    ;; org-icalendar config
-    (setq org-icalendar-combined-agenda-file "~/Sync/Notes/agenda.ics")
-    (setq org-icalendar-include-todo t)
-    (setq org-icalendar-use-scheduled '(event-if-todo event-if-not-todo))
-    (setq org-icalendar-use-deadline '(event-if-todo event-if-not-todo))
-
-
     (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
     (add-hook 'org-mode-hook 'org-superstar-mode)
     (add-hook 'org-mode-hook 'org-indent-mode)
@@ -841,6 +684,12 @@ Add a custom compile command
      (C . t)
      (scheme . t)))
 #+END_SRC
+** Org Capture
+#+begin_src emacs-lisp
+(setq org-capture-templates
+      '(("j" "Journal" entry (file+datetree "~/Sync/Notes/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+#+end_src
 ** Org Publish
 This is still inside the org use-package
 #+BEGIN_SRC emacs-lisp
@@ -850,15 +699,6 @@ This is still inside the org use-package
   <footer>
     <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
   </footer>" (current-time-string)))
-
-;; Lazy and bad
-(defun neo-org-publish ()
-  (interactive)
-  (let ((default-directory
-          (plist-get (cdar org-publish-project-alist) :publishing-directory))
-        (commit-msg (current-time-string)))
-    (org-publish-all)
-    (shell-command (format "git commit -am \"%s\" && git push origin master" commit-msg))))
 
 (setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
 
@@ -884,28 +724,6 @@ This is still inside the org use-package
          :recursive t
          :publishing-function org-html-publish-to-html)
 
-        ("org-blog"
-         :author "neosloth"
-         ;; Location of org files
-         :base-directory "~/Sync/Notes/website/blog/"
-         :base-extension "org"
-         :publishing-directory "~/Sync/publish/blog/"
-         :html-postamble neo-postamble
-         :html-html5-fancy t
-         ;; Content has css links in the template
-         :html-head-extra ,neo-site-head-extra
-         :htmlized-source t
-         :auto-sitemap t
-         :sitemap-filename "index.org"
-         :sitemap-title "Articles"
-         :sitemap-style list
-         :sitemap-sort-files anti-chronologically
-         :sitemap-format-entry neo-site-format-entry
-         :html-link-up "./index.html"
-         :html-link-home "../index.html"
-         :recursive t
-         :publishing-function org-html-publish-to-html)
-
         ("org-static"
          :base-directory "~/Sync/Notes/website/static/"
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html\\|txt"
@@ -920,41 +738,40 @@ This is still inside the org use-package
          :recursive t
          :publishing-function org-publish-attachment)
 
-        ("org-src-blog"
-         :base-directory "~/Sync/Notes/website/blog/"
+        ("org-roam"
+         :auto-sitemap t
+         :base-directory "~/Sync/Notes/roam"
          :base-extension "org"
-         :publishing-directory "~/Sync/publish/src/blog/"
+         :publishing-directory "~/Sync/publish-roam"
          :recursive t
-         :publishing-function org-publish-attachment)
+         :publishing-function org-html-publish-to-html)
 
-        ("website" :components ("org-content" "org-static" "org-blog" "org-src-content" "org-src-blog")))))
+        ("website" :components ("org-content" "org-static" "org-blog" "org-src-content")))))
 #+END_SRC
-** Org Capture
-#+BEGIN_SRC emacs-lisp
-(use-package org-capture
-  :disabled t
-  :ensure nil
-  :after org
-  :custom
-  (org-capture-templates
-   '(("t" "Todo" entry (file+headline org-todo-location "Tasks")
-      "* TODO %?\n  %i\n  %a")
-	 ("j" "Journal" entry (file+datetree "~/Sync/Notes/journal.org")
-      "* %?"
-	  :empty-lines 1)
-     ("p" "Clipboard" entry (file+headline org-todo-location "Links")
-      "* %?\n %x")
-     ("c" "Contact" entry (file+headline "~/Sync/Notes/contacts.org" "Contacts"),
-      my/org-contacts-template
-      :empty-lines 1 )
-     ("s" "Scheduled" entry (file+headline org-todo-location "Events")
-      "* %?\nSCHEDULED: %(org-insert-time-stamp (org-read-date nil t \"+0d\"))\n"))))
-#+END_SRC
-** Org-present
+
+
+** Org-roam
 #+begin_src emacs-lisp
-(use-package org-present
-  :disabled t
-  :after org)
+(use-package org-roam
+  :ensure t
+  :custom
+  (org-roam-directory (file-truename "~/Sync/Notes/roam"))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         ;; Dailies
+         ("C-c n j" . org-roam-dailies-capture-today))
+  :custom
+  (org-roam-capture-templates '(("d" "default" plain "%?" :target (file+head "${slug}.org" "#+title: ${title}")
+                               :unnarrowed t))
+  ;; If you're using a vertical completion framework, you might want a more informative completion interface
+  (org-roam-node-display-template (concat "${title:*} " (propertize "${tags:10}" 'face 'org-tag)))
+  :config
+  (org-roam-db-autosync-mode)
+  (require 'org-roam-dailies)
+  (require 'org-roam-export)))
 #+end_src
 ** Export Backends
 *** ox-slack
@@ -973,7 +790,7 @@ This is still inside the org use-package
 
 ** Zerodark
 #+BEGIN_SRC emacs-lisp
-(use-package zerodark-theme
+(use-package modus-themes
   :config
-  (load-theme 'zerodark t))
+  (load-theme 'modus-vivendi-tinted t))
 #+END_SRC
