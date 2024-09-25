@@ -398,6 +398,13 @@ Moves the custom file into a temp file, effectively making it session local
   (define-key evil-normal-state-map (kbd "C-j") 'flymake-goto-next-error)
   (define-key evil-normal-state-map (kbd "C-k") 'flymake-goto-prev-error))
 #+end_src
+** Kubed
+#+begin_src emacs-lisp
+(use-package kubed
+  :bind (("C-c k" . kubed-prefix-map)
+         :map kubed-prefix-map
+         ("k" . kubed-transient)))
+#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Parens
