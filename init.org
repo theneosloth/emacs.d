@@ -134,17 +134,17 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+END_SRC
 ** UTF-8 and Fonts
 #+BEGIN_SRC emacs-lisp
-(if (eq system-type 'windows-nt)
-        (set-face-attribute 'default nil :family "Consolas" :height 100)
-  (set-face-attribute 'default nil :family "DejaVu Sans Mono"))
+;; (if (eq system-type 'windows-nt)
+;;         (set-face-attribute 'default nil :family "Consolas" :height 100)
+;;   (set-face-attribute 'default nil :family "DejaVu Sans Mono"))
 
-(set-fontset-font t 'symbol "Apple Color Emoji")
-(set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
-(set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
-(set-fontset-font t 'symbol "Symbola" nil 'append)
+;; (set-fontset-font t 'symbol "Apple Color Emoji")
+;; (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
+;; (set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
+;; (set-fontset-font t 'symbol "Symbola" nil 'append)
 
 ;;The following lines force UTF-8 whenever possible
-(setq-default buffer-file-coding-system 'utf-8-unix)
+;; (setq-default buffer-file-coding-system 'utf-8-unix)
 (prefer-coding-system 'utf-8-unix)
 #+END_SRC
 ** Dos2Unix
@@ -585,16 +585,17 @@ Moves the custom file into a temp file, effectively making it session local
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
-  :mode (("\\.lisp\\'" . sly-mode))
   :init
   (with-eval-after-load 'sly-mrepl
     (define-key sly-mrepl-mode-map (kbd "<C-up>") 'sly-mrepl-previous-input-or-button)
     (define-key sly-mrepl-mode-map (kbd "<C-down>") 'sly-mrepl-next-input-or-button))
 
   :config
-    (setq sly-lisp-implementations
-          '((qlot ("qlot" "exec" "sbcl") :coding-system utf-8-unix))))
+  (setq sly-lisp-implementations
+        '((sbcl ("sbcl") :coding-system utf-8-unix)
+          (qlot ("qlot" "exec" "sbcl") :coding-system utf-8-unix))))
 #+END_SRC
+
 
 ** Cider
 #+BEGIN_SRC emacs-lisp
@@ -634,7 +635,9 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package org
   :mode ("\\.org" . org-mode)
   :diminish (org-indent-mode visual-line-mode)
+  :custom (org-plantuml-exec-mode 'plantuml)
   :ensure org-superstar
+  :ensure org-contrib
   :ensure htmlize
   :defer t
   :config
@@ -677,6 +680,7 @@ Moves the custom file into a temp file, effectively making it session local
     (add-hook 'org-mode-hook 'visual-line-mode))
 
   (require 'ox-md)
+  (require 'ob-tcl)
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -684,6 +688,8 @@ Moves the custom file into a temp file, effectively making it session local
      (java . t)
      (haskell . t)
      (calc . t)
+     (tcl . t)
+     (plantuml . t)
      (lisp . t)
      (shell . t)
      (ruby . t)
@@ -691,8 +697,10 @@ Moves the custom file into a temp file, effectively making it session local
      (C . t)
      (scheme . t)))
 #+END_SRC
-** Org Capture
+** Org Agenda
 #+begin_src emacs-lisp
+(setq org-agenda-files '("~/Sync/Notes/agenda.org"))
+
 (setq org-capture-templates
       '(("j" "Journal" entry (file+datetree "~/Sync/Notes/journal.org")
          "* %?\nEntered on %U\n  %i\n  %a")))
@@ -750,6 +758,7 @@ This is still inside the org use-package
          :base-directory "~/Sync/Notes/roam"
          :base-extension "org"
          :publishing-directory "~/Sync/publish-roam"
+         :html-html5-fancy t
          :recursive t
          :publishing-function org-html-publish-to-html)
 
