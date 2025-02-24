@@ -42,7 +42,7 @@ Taken from [[https://github.com/larstvei/dot-emacs/][larstvei]]
 ** Install use-package
 Make sure that use-package is installed and that ensure is always on so that use-package downloads every package that is not installed.
 #+BEGIN_SRC emacs-lisp
-(setq use-package-always-ensure t)
+(setopt use-package-always-ensure t)
 #+END_SRC
 ** Install quelpa
 #+begin_src emacs-lisp
@@ -53,7 +53,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 ** Startup with tramp
 #+BEGIN_SRC emacs-lisp
 ;;(require 'tramp)
-(setq tramp-default-method "ssh"
+(setopt tramp-default-method "ssh"
       tramp-backup-directory-alist backup-directory-alist
       tramp-ssh-controlmaster-options "ssh")
 #+END_SRC
@@ -61,8 +61,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+BEGIN_SRC emacs-lisp
 ;;Replace the default switch buffer key with the smarter ibuffer window
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-
-
 
 (global-set-key (kbd "C-c w") 'whitespace-mode)
 
@@ -75,13 +73,11 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-set-key (kbd "C-c v") 'visual-line-mode)
 
 (global-set-key (kbd "<f8>") 'compile)
-
-(setq tab-always-indent 'complete)
 #+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
 ;;Show current buffer name
-(setq frame-title-format "emacs - %b")
+(setopt frame-title-format "emacs - %b")
 ;;Hide the toolbar scroll bar and menubar
 (if (display-graphic-p)
     (progn
@@ -99,8 +95,8 @@ Make sure that use-package is installed and that ensure is always on so that use
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 ;; Disable the visual bell and the audio bell
-(setq visible-bell nil)
-(setq ring-bell-function 'ignore)
+(setopt visible-bell nil)
+(setopt ring-bell-function 'ignore)
 
 (when (fboundp 'windmove-default-keybindings)
   (windmove-default-keybindings))
@@ -109,7 +105,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 (global-auto-revert-mode 1)
 
 ;;Speeds up process reads
-(setq read-process-output-max (* 1024 1024)) ;; 1mb
+(setopt read-process-output-max (* 1024 1024)) ;; 1mb
 
 (add-hook 'prog-mode-hook 'subword-mode)
 
@@ -118,19 +114,12 @@ Make sure that use-package is installed and that ensure is always on so that use
   :bind ("C-c w" . whitespace-mode)
   :hook ((prog-mode . whitespace-mode))
   :config
-  (setq whitespace-style '(face tabs spaces trailing space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof)))
+  (setopt whitespace-style '(face tabs spaces trailing space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof)))
 #+END_SRC
 *** Easily search for non ASCII Characters
 #+BEGIN_SRC emacs-lisp
-(setq search-default-mode #'char-fold-to-regexp)
-(setq replace-char-fold t)
-#+END_SRC
-*** Prettify symbols mode
-#+BEGIN_SRC emacs-lisp
-;; Causes lag on windows
-(unless (eq system-type 'windows-nt)
-  (global-prettify-symbols-mode)
-  (setq prettify-symbols-unprettify-at-point 'right-edge))
+(setopt search-default-mode #'char-fold-to-regexp)
+(setopt replace-char-fold t)
 #+END_SRC
 ** UTF-8 and Fonts
 #+BEGIN_SRC emacs-lisp
@@ -161,14 +150,14 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+BEGIN_SRC emacs-lisp
 ;;Enables copy/paste from the system clipboard.
 ;;(setq select-enable-primary t)
-;;(setq select-enable-clipboard t)
-(setq save-interprogram-paste-before-kill t)
-(setq kill-do-not-save-duplicates t)
+;;(setopt select-enable-clipboard t)
+(setopt save-interprogram-paste-before-kill t)
+(setopt kill-do-not-save-duplicates t)
 #+END_SRC
 ** Auto saves
 Move the auto-save and backup files into the temp file directory so that emacs doesn't flood the working folders with junk.
 #+BEGIN_SRC emacs-lisp
-(setq backup-directory-alist '(("." . "~/.emacs.d/backup"))
+(setopt backup-directory-alist '(("." . "~/.emacs.d/backup"))
       backup-by-copying t    ; Don't delink hardlinks
       version-control t      ; Use version numbers on backups
       delete-old-versions t  ; Automatically delete excess backups
@@ -176,7 +165,7 @@ Move the auto-save and backup files into the temp file directory so that emacs d
       kept-old-versions 5    ; and how many of the old
 )
 
-(setq auto-save-file-name-transforms
+(setopt auto-save-file-name-transforms
       `((".*" , temporary-file-directory t)))
 #+END_SRC
 ** Startup Message and Screen
@@ -186,7 +175,7 @@ Move the auto-save and backup files into the temp file directory so that emacs d
       inhibit-startup-echo-area-message t
       inhibit-startup-message t)
 
-(setq initial-scratch-message nil)
+(setopt initial-scratch-message nil)
 
 (defun display-startup-echo-area-message()
   (message (emacs-init-time)))
@@ -195,27 +184,27 @@ Move the auto-save and backup files into the temp file directory so that emacs d
 *** Dired quick copy/paste
 When dired-dwim-target is enabled, dired tries to guess a default target directory. So if there are multiple dired panes open it will use that as the default.
 #+BEGIN_SRC emacs-lisp
-(setq dired-dwim-target t)
+(setopt dired-dwim-target t)
 #+END_SRC
 *** Misc
 Show all files with human readable sizes
 #+BEGIN_SRC emacs-lisp
-(setq dired-listing-switches "-alh")
+(setopt dired-listing-switches "-alh")
 #+END_SRC
 
 ** Fix lag
 [[https://emacs.stackexchange.com/questions/28736/emacs-pointcursor-movement-lag/28746][Source]]
 #+BEGIN_SRC emacs-lisp
-(setq auto-window-vscroll nil)
+(setopt auto-window-vscroll nil)
 #+END_SRC
 ** Horizontal Scrolling
 #+BEGIN_SRC emacs-lisp
-(setq auto-hscroll-mode 'current-line)
+(setopt auto-hscroll-mode 'current-line)
 #+END_SRC
 ** Rgrep fix
 #+BEGIN_SRC emacs-lisp
 (when (eq system-type 'windows-nt)
-  (setq find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe")))
+  (setopt find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe")))
 #+END_SRC
 ** Disable custom settings
 Moves the custom file into a temp file, effectively making it session local
@@ -223,7 +212,7 @@ Moves the custom file into a temp file, effectively making it session local
 [[https://jamiecollinson.com/blog/my-emacs-config/][Source]]
 
 #+BEGIN_SRC emacs-lisp
-(setq custom-file (make-temp-file "emacs-custom"))
+(setopt custom-file (make-temp-file "emacs-custom"))
 #+END_SRC
 ** Enable ANSI Colors in compilation mode
 #+begin_src emacs-lisp
@@ -233,57 +222,18 @@ Moves the custom file into a temp file, effectively making it session local
     (ansi-color-apply-on-region (point-min) (point-max))))
 (add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
 #+end_src
-* Custom Packages
-** Vertico
+** Fido
 #+begin_src emacs-lisp
-(use-package vertico
-  :init
-  (vertico-mode 1)
-  (vertico-multiform-mode 1)
-  :config
-  (setq vertico-multiform-commands
-    '((consult-line buffer)
-      (consult-line-thing-at-point buffer)
-      (consult-recent-file buffer)
-      (consult-mode-command buffer)
-      (consult-complex-command buffer)
-      (embark-bindings buffer)
-      (consult-locate buffer)
-      (consult-project-buffer buffer)
-      (consult-ripgrep buffer)
-      (consult-fd buffer)))
-  :bind (:map vertico-map
-          ("M-<return>" . minibuffer-force-complete-and-exit)))
+(setopt read-file-name-completion-ignore-case t)
+(setopt completion-cycle-threshold t)
+(setopt enable-recursive-minibuffers t)
+(setopt tab-always-indent 'complete)
+(setopt completion-styles '(basic initials substring))
 
-;; Configure directory extension.
-(use-package vertico-directory
-  :after vertico
-  :ensure nil
-  ;; More convenient directory navigation commands
-  :bind (:map vertico-map
-              ("RET" . vertico-directory-enter)
-              ("DEL" . vertico-directory-delete-char)
-              ("M-DEL" . vertico-directory-delete-word))
-  ;; Tidy shadowed file names
-  :hook (rfn-eshadow-update-overlay . vertico-directory-tidy))
-
-(use-package marginalia
-  :init
-  (marginalia-mode))
-
-(use-package savehist
-  :init
-  (savehist-mode))
-
-(use-package orderless
-  :custom
-  (completion-styles '(orderless))
-  (completion-category defaults nil))
-
-(use-package consult
-  :bind
-  (("\C-s" . consult-line)))
+(fido-vertical-mode)
+(completion-preview-mode)
 #+end_src
+* Custom Packages
 ** Evil
 #+BEGIN_SRC emacs-lisp
 (use-package evil
@@ -337,9 +287,9 @@ Moves the custom file into a temp file, effectively making it session local
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 #+END_SRC
-** Company
 #+BEGIN_SRC emacs-lisp
 (use-package corfu
+  :disabled t
   ;; TAB-and-Go customizations
   :custom
   (corfu-auto t)
@@ -364,19 +314,6 @@ Moves the custom file into a temp file, effectively making it session local
   :config
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+END_SRC
-** Auctex
-#+BEGIN_SRC emacs-lisp
-(use-package auctex
-  :mode (("\\.tex$" . LaTeX-mode)
-         ("\\.latex$" . LaTeX-mode))
-
-  :config
-  (setq TeX-PDF-mode t)
-  (setq TeX-auto-save t)
-  (add-hook 'latex-mode-hook 'turn-on-auto-fill)
-  (add-hook 'latex-mode-hook 'visual-line-mode))
-#+END_SRC
-
 ** Magit
 #+BEGIN_SRC emacs-lisp
 (use-package magit
@@ -425,18 +362,6 @@ Moves the custom file into a temp file, effectively making it session local
   :commands git-gutter-mode
   :hook (prog-mode . git-gutter-mode))
 #+END_SRC
-*** Misc
-#+BEGIN_SRC emacs-lisp
-(defun neosloth-prog-mode-hook ()
-  "My custom prog mode hook"
-  (setq electric-pair-inhibit-predicate
-        (lambda (c)
-          (if (char-equal c ?<) t (electric-pair-default-inhibit c))))
-  (electric-pair-mode))
-
-(add-hook 'prog-mode-hook 'neosloth-prog-mode-hook)
-#+END_SRC
-
 ** Eglot
 #+begin_src emacs-lisp
 (use-package eglot
@@ -469,20 +394,6 @@ Moves the custom file into a temp file, effectively making it session local
   :hook ((python-mode . pyvenv-auto-run)))
 #+end_src
 
-** Scala
-#+begin_src emacs-lisp
-(use-package scala-mode
-  :disabled t
-  :interpreter ("scala" . scala-mode))
-
-;; Enable sbt mode for executing sbt commands
-(use-package sbt-mode
-  :disabled t
-  :commands sbt-start sbt-command
-  :config
-  ;; sbt-supershell kills sbt-mode:  https://github.com/hvesalai/emacs-sbt-mode/issues/152
-  (setq sbt:program-options '("-Dsbt.supershell=false")))
-#+end_src
 ** Tree Sitter
 #+begin_src emacs-lisp
 (use-package tree-sitter
@@ -526,17 +437,7 @@ Moves the custom file into a temp file, effectively making it session local
 #+end_src
 ** Go
 #+begin_src emacs-lisp
-(use-package go-mode
-  :mode ("\\.go\\'" . go-mode)
-  :config
-  (defun project-find-go-module (dir)
-        (when-let ((root (locate-dominating-file dir "go.mod")))
-          (cons 'go-module root)))
-
-  (cl-defmethod project-root ((project (head go-module)))
-        (cdr project))
-
-  (add-hook 'project-find-functions #'project-find-go-module))
+(use-package go-mode)
 #+end_src
 ** C-Mode
 *** Indentation
@@ -554,14 +455,6 @@ Moves the custom file into a temp file, effectively making it session local
 (add-to-list 'auto-mode-alist
              '("\\.ts\\'" . js-mode))
 #+end_src
-** Web/HTML
-#+BEGIN_SRC emacs-lisp
-(use-package emmet-mode
-  :commands emmet-mode
-  :hook (js-mode html-mode sgml-mode mhtml-mode ts-mode web-mode)
-  :config
-  (setq emmet-move-cursor-between-quotes t))
-#+END_SRC
 ** Markdown
 #+BEGIN_SRC emacs-lisp
 (use-package markdown-mode
@@ -571,17 +464,6 @@ Moves the custom file into a temp file, effectively making it session local
          ("\\.markdown\\'" . markdown-mode))
   :custom (markdown-command "multimarkdown"))
 #+END_SRC
-** Haskell
-#+begin_src emacs-lisp
-(use-package haskell-mode
-  :disabled t
-  :hook (haskell-mode . haskell-indentation-mode)
-  :hook (haskell-mode . haskell-doc-mode)
-  :bind (:map haskell-mode-map
-                          ("C-c C-l" . haskell-process-load-or-reload)
-                          ("C-c C-t" . haskell-process-do-type)
-                          ("C-c C-i" . haskell-process-do-info)))
-#+end_src
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
@@ -596,12 +478,6 @@ Moves the custom file into a temp file, effectively making it session local
           (qlot ("qlot" "exec" "sbcl") :coding-system utf-8-unix))))
 #+END_SRC
 
-
-** Cider
-#+BEGIN_SRC emacs-lisp
-(use-package cider
-  :disabled t)
-#+END_SRC
 ** Very Large files
 #+begin_src emacs-lisp
 (if (version<= "27.1" emacs-version)
@@ -618,16 +494,9 @@ Moves the custom file into a temp file, effectively making it session local
     :config
     (envrc-global-mode)))
 #+end_src
-** Gleam
-#+begin_src emacs-lisp
-(use-package gleam-mode
-  :disabled t
-  :quelpa (gleam-mode :fetcher github :repo "gleam-lang/gleam-mode"))
-#+end_src
 ** Ansible
 #+begin_src emacs-lisp
-(use-package ansible
-  :disabled t)
+(use-package ansible)
 #+end_src
 * Org Mode
 
