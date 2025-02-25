@@ -224,14 +224,11 @@ Moves the custom file into a temp file, effectively making it session local
 #+end_src
 ** Fido
 #+begin_src emacs-lisp
-(setopt read-file-name-completion-ignore-case t)
-(setopt completion-cycle-threshold t)
-(setopt enable-recursive-minibuffers t)
 (setopt tab-always-indent 'complete)
-(setopt completion-styles '(basic initials substring))
-
+(setopt completion-styles '(basic flex))
+(setopt read-buffer-completion-ignore-case t)
+(setopt read-file-name-completion-ignore-case t)
 (fido-vertical-mode)
-(completion-preview-mode)
 #+end_src
 * Custom Packages
 ** Evil
@@ -289,8 +286,6 @@ Moves the custom file into a temp file, effectively making it session local
 #+END_SRC
 #+BEGIN_SRC emacs-lisp
 (use-package corfu
-  :disabled t
-  ;; TAB-and-Go customizations
   :custom
   (corfu-auto t)
   (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
