@@ -204,7 +204,7 @@ Show all files with human readable sizes
 ** Rgrep fix
 #+BEGIN_SRC emacs-lisp
 (when (eq system-type 'windows-nt)
-  (setopt find-program (expand-file-name "~/Sync/PortableWindows/emacs/bin/find.exe")))
+  (setopt find-program (expand-file-name "~/Documents/Sync/PortableWindows/emacs/bin/find.exe")))
 #+END_SRC
 ** Disable custom settings
 Moves the custom file into a temp file, effectively making it session local
@@ -498,53 +498,47 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (use-package org
   :mode ("\\.org" . org-mode)
-  :diminish (org-indent-mode visual-line-mode)
   :custom (org-plantuml-exec-mode 'plantuml)
-  :ensure org-superstar
-  :ensure org-contrib
-  :ensure htmlize
   :defer t
   :config
-  (progn
-    (setq org-src-preserve-indentation nil
+  (setq org-src-preserve-indentation nil
 
-          org-confirm-babel-evaluate nil
-          org-return-follows-link t
-          org-startup-with-inline-images t
-          org-descriptive-links nil
-          ;; Automatically preview latex fragments, and store the image files in the temp directory
-          ;; org-startup-with-latex-preview t
-          org-latex-preview-ltxpng-directory (expand-file-name
-                                              (concat temporary-file-directory "ltxpng/"))
-          ;; org-latex-create-formula-image-program 'imagemagick
-          ;; allows alphabetical lists
-          org-list-allow-alphabetical t
-          ;; requires superscripts to use groups ({})
-          org-use-sub-superscripts nil
-          org-export-with-toc nil)
+        org-confirm-babel-evaluate nil
+        org-return-follows-link t
+        org-startup-with-inline-images t
+        org-descriptive-links nil
+        ;; Automatically preview latex fragments, and store the image files in the temp directory
+        ;; org-startup-with-latex-preview t
+        org-latex-preview-ltxpng-directory (expand-file-name
+                                            (concat temporary-file-directory "ltxpng/"))
+        ;; org-latex-create-formula-image-program 'imagemagick
+        ;; allows alphabetical lists
+        org-list-allow-alphabetical t
+        ;; requires superscripts to use groups ({})
+        org-use-sub-superscripts nil
+        org-export-with-toc nil)
 
-    ;; org-src config
-    (setq
-     org-edit-src-content-indentation 0
-     org-src-fontify-natively t
-     org-src-tab-acts-natively t
-     org-src-window-setup 'current-window)
+  ;; org-src config
+  (setq
+   org-edit-src-content-indentation 0
+   org-src-fontify-natively t
+   org-src-tab-acts-natively t
+   org-src-window-setup 'current-window)
 
-    ;; Make windmove work in org-mode:
-    (add-hook 'org-shiftup-final-hook 'windmove-up)
-    (add-hook 'org-shiftleft-final-hook 'windmove-left)
-    (add-hook 'org-shiftdown-final-hook 'windmove-down)
-    (add-hook 'org-shiftright-final-hook 'windmove-right)
+  ;; Make windmove work in org-mode:
+  (add-hook 'org-shiftup-final-hook 'windmove-up)
+  (add-hook 'org-shiftleft-final-hook 'windmove-left)
+  (add-hook 'org-shiftdown-final-hook 'windmove-down)
+  (add-hook 'org-shiftright-final-hook 'windmove-right)
 
-    ;; Org-publish config
-    (setq org-html-validation-link nil)
-    (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
-    (add-hook 'org-mode-hook 'org-superstar-mode)
-    (add-hook 'org-mode-hook 'org-indent-mode)
-    (add-hook 'org-mode-hook 'visual-line-mode))
+  ;; Org-publish config
+  (setq org-html-validation-link nil)
+  (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
+  (add-hook 'org-mode-hook 'org-superstar-mode)
+  (add-hook 'org-mode-hook 'org-indent-mode)
+  (add-hook 'org-mode-hook 'visual-line-mode)
 
   (require 'ox-md)
-  (require 'ob-tcl)
 
   (org-babel-do-load-languages
    'org-babel-load-languages
@@ -560,73 +554,66 @@ Moves the custom file into a temp file, effectively making it session local
      (js . t)
      (C . t)
      (scheme . t)))
-#+END_SRC
-** Org Agenda
-#+begin_src emacs-lisp
-(setq org-agenda-files '("~/Sync/Notes/agenda.org"))
 
-(setq org-capture-templates
-      '(("j" "Journal" entry (file+datetree "~/Sync/Notes/journal.org")
-         "* %?\nEntered on %U\n  %i\n  %a")))
-#+end_src
-** Org Publish
-This is still inside the org use-package
-#+BEGIN_SRC emacs-lisp
-(defun neo-postamble (plist)
-  (format
-   "<a id=\"sticky_arrow\" href=\"#top\">Top</a>
+  (defvar neo-title "neosloth.dev"
+    "The title of this site.")
+
+
+  (defun neo-postamble (plist)
+    (format
+     "<a id=\"sticky_arrow\" href=\"#top\">Top</a>
   <footer>
     <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
   </footer>" (current-time-string)))
 
-(setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
+  (setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
 
-;; Custom blog sitemap
-;; Taken from https://www.evenchick.com/blog/blogging-with-org-mode.html
-(defun neo-site-format-entry (entry style project)
-  (format "[[file:%s][%s]] --- %s"
-          entry
-          (org-publish-find-title entry project)
-          (format-time-string "%Y-%m-%d" (org-publish-find-date entry project))))
+  (defun neo/org-rss-publish-to-rss (plist filename pub-dir)
+    "Publish RSS with PLIST, only when FILENAME is 'rss.org'.
+PUB-DIR is when the output will be placed."
+    (if (equal "rss.org" (file-name-nondirectory filename))
+        (org-rss-publish-to-rss plist filename pub-dir)))
 
-(setq org-publish-project-alist
-      `(("org-content"
-         :author "neosloth"
-         ;; Location of org files
-         :base-directory "~/Sync/Notes/website/content/"
-         :base-extension "org"
-         :publishing-directory "~/Sync/publish/"
-         :auto-sitemap nil
-         :html-postamble neo-postamble
-         :html-html5-fancy t
-         :htmlized-source t
-         :recursive t
-         :publishing-function org-html-publish-to-html)
+  (setq org-publish-project-alist
+        (list
+         (list "org-content"
+               :author "neosloth"
+               ;; Location of org files
+               :base-directory "~/Documents/Sync/Notes/website/content/"
+               :base-extension "org"
+               :publishing-directory "~/publish/"
+               :auto-sitemap nil
+               :html-postamble 'neo-postamble
+               :html-html5-fancy t
+               :htmlized-source t
+               :recursive t
+               :publishing-function 'org-html-publish-to-html
+               :email ""
+               )
 
-        ("org-static"
-         :base-directory "~/Sync/Notes/website/static/"
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html\\|txt"
-         :publishing-directory "~/Sync/publish/"
-         :recursive t
-         :publishing-function org-publish-attachment)
+         (list "org-static"
+               :base-directory "~/Documents/Sync/Notes/website/static/"
+               :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html\\|txt"
+               :publishing-directory "~/publish/"
+               :recursive t
+               :publishing-function 'org-publish-attachment
+               :email ""
+               )
 
-        ("org-src-content"
-         :base-directory "~/Sync/Notes/website/content/"
-         :base-extension "org"
-         :publishing-directory "~/Sync/publish/src/content/"
-         :recursive t
-         :publishing-function org-publish-attachment)
+         (list "org-blog"
+           :base-directory "~/Documents/Sync/Notes/website/blog"
+           :base-extension "org"
+           :html-link-home "blog.neosloth.dev"
+           :html-link-use-abs-url t
+           :rss-extension "xml"
+           :publishing-directory "~/publish/"
+           :publishing-function 'org-rss-publish-to-rss
+           :section-numbers nil
+           :exclude ".*"
+           :include '("index.org")
+           :table-of-contents nil)
 
-        ("org-roam"
-         :auto-sitemap t
-         :base-directory "~/Sync/Notes/roam"
-         :base-extension "org"
-         :publishing-directory "~/Sync/publish-roam"
-         :html-html5-fancy t
-         :recursive t
-         :publishing-function org-html-publish-to-html)
-
-        ("website" :components ("org-content" "org-static" "org-blog" "org-src-content")))))
+         (list "website" :components (list "org-content" "org-static" "org-blog")))))
 #+END_SRC
 
 
@@ -635,7 +622,7 @@ This is still inside the org use-package
 (use-package org-roam
   :ensure t
   :custom
-  (org-roam-directory (file-truename "~/Sync/Notes/roam"))
+  (org-roam-directory (file-truename "~/Documents/Sync/Notes/roam"))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n g" . org-roam-graph)
