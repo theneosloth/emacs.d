@@ -3,13 +3,15 @@
 * Package Initialization and Installation
 ** Garbage Collection
 #+BEGIN_SRC emacs-lisp
-;;(setq use-package-compute-statistics t)
-;; Allocate more memory to the garbage collector during initialization.
-(setq gc-cons-threshold (* 50 1000 1000))
-;; Portion of heap used for allocation.  Defaults to 0.1.
-(setq gc-cons-percentage 0.6)
-;; Reset it to the default after initialization
-(add-hook 'after-init-hook (lambda () (setq gc-cons-threshold (* 2 1000 1000))))
+;; Delay garbage collection while Emacs is booting
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6)
+
+;; Schedule garbage collection sensible defaults for after booting
+(add-hook 'after-init-hook
+          (lambda ()
+            (setq gc-cons-threshold (* 100 1024 1024)
+                  gc-cons-percentage 0.1)))
 #+END_SRC
 
 ** Automatic tangling
@@ -50,13 +52,14 @@ Make sure that use-package is installed and that ensure is always on so that use
   :disabled t)
 #+end_src
 * Misc options
-** Startup with tramp
-#+BEGIN_SRC emacs-lisp
-;;(require 'tramp)
-(setopt tramp-default-method "ssh"
-      tramp-backup-directory-alist backup-directory-alist
-      tramp-ssh-controlmaster-options "ssh")
-#+END_SRC
+** General Emacs Config
+#+begin_src emacs-lisp
+(use-package emacs
+  :ensure nil
+  :custom
+  (enable-recursive-minibuffers t)
+  (ibuffer-human-readable-size t))
+#+end_src
 ** Custom Keybinds
 #+BEGIN_SRC emacs-lisp
 ;;Replace the default switch buffer key with the smarter ibuffer window
@@ -121,31 +124,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 (setopt search-default-mode #'char-fold-to-regexp)
 (setopt replace-char-fold t)
 #+END_SRC
-** UTF-8 and Fonts
-#+BEGIN_SRC emacs-lisp
-;; (if (eq system-type 'windows-nt)
-;;         (set-face-attribute 'default nil :family "Consolas" :height 100)
-;;   (set-face-attribute 'default nil :family "DejaVu Sans Mono"))
-
-;; (set-fontset-font t 'symbol "Apple Color Emoji")
-;; (set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
-;; (set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
-;; (set-fontset-font t 'symbol "Symbola" nil 'append)
-
-;;The following lines force UTF-8 whenever possible
-;; (setq-default buffer-file-coding-system 'utf-8-unix)
-(prefer-coding-system 'utf-8-unix)
-#+END_SRC
-** Dos2Unix
-#+BEGIN_SRC emacs-lisp
-(defun dos2unix (buffer)
-  "Automate M-% C-q C-m RET C-q C-j RET"
-  (interactive "*b")
-  (save-excursion
-    (goto-char (point-min))
-    (while (search-forward (string ?\C-m) nil t)
-      (replace-match (string ?\C-j) nil t))))
-#+END_SRC
 ** Clipboard
 #+BEGIN_SRC emacs-lisp
 ;;Enables copy/paste from the system clipboard.
@@ -201,11 +179,6 @@ Show all files with human readable sizes
 #+BEGIN_SRC emacs-lisp
 (setopt auto-hscroll-mode 'current-line)
 #+END_SRC
-** Rgrep fix
-#+BEGIN_SRC emacs-lisp
-(when (eq system-type 'windows-nt)
-  (setopt find-program (expand-file-name "~/Documents/Sync/PortableWindows/emacs/bin/find.exe")))
-#+END_SRC
 ** Disable custom settings
 Moves the custom file into a temp file, effectively making it session local
 
@@ -214,21 +187,32 @@ Moves the custom file into a temp file, effectively making it session local
 #+BEGIN_SRC emacs-lisp
 (setopt custom-file (make-temp-file "emacs-custom"))
 #+END_SRC
-** Enable ANSI Colors in compilation mode
-#+begin_src emacs-lisp
-(require 'ansi-color)
-(defun colorize-compilation-buffer ()
-  (let ((inhibit-read-only t))
-    (ansi-color-apply-on-region (point-min) (point-max))))
-(add-hook 'compilation-filter-hook 'colorize-compilation-buffer)
-#+end_src
 ** Fido
 #+begin_src emacs-lisp
 (setopt tab-always-indent 'complete)
-(setopt completion-styles '(basic flex))
+(setopt completion-styles '(basic flex)
+      completion-auto-select t ;; Show completion on first call
+      completion-auto-help 'visible ;; Display *Completions* upon first request
+      completions-format 'one-column ;; Use only one column
+      completions-sort 'historical ;; Order based on minibuffer history
+      completions-max-height 20 ;; Limit completions to 15 (completions start at line 5)
+      completion-ignore-case t)
+
+
 (setopt read-buffer-completion-ignore-case t)
 (setopt read-file-name-completion-ignore-case t)
 (fido-vertical-mode)
+
+(add-hook 'prog-mode-hook #'completion-preview-mode)
+(add-hook 'text-mode-hook #'completion-preview-mode)
+(add-hook 'rcirc-mode-hook #'completion-preview-mode)
+(add-hook 'erc-mode-hook #'completion-preview-mode)
+
+(use-package completion-preview
+  :ensure nil
+  :custom (completion-preview-exact-match-only t)
+  :hook ((prog-mode . completion-preview-mode)
+         (text-mode . completion-preview-mode)))
 #+end_src
 * Custom Packages
 ** Evil
@@ -284,59 +268,6 @@ Moves the custom file into a temp file, effectively making it session local
   (require 'evil-org-agenda)
   (evil-org-agenda-set-keys))
 #+END_SRC
-#+BEGIN_SRC emacs-lisp
-(use-package corfu
-  :custom
-  (corfu-auto t)
-  (corfu-cycle t)             ;; Enable cycling for `corfu-next/previous'
-  (corfu-preselect-first nil) ;; Disable candidate preselection
-
-  ;; Use TAB for cycling, default is `corfu-complete'.
-  :bind
-  (:map corfu-map
-        ("TAB" . corfu-next)
-        ([tab] . corfu-next)
-        ("S-TAB" . corfu-previous)
-        ([backtab] . corfu-previous))
-
-  :init
-  (global-corfu-mode))
-
-(use-package kind-icon
-  :after corfu
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  :config
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-#+END_SRC
-** Magit
-#+BEGIN_SRC emacs-lisp
-(use-package magit
-  :bind ("C-c g" . magit-status))
-#+END_SRC
-** Get path from shell
-#+begin_src emacs-lisp
-(use-package exec-path-from-shell
-  :if (memq window-system '(mac ns x))
-  :ensure t
-  :config
-  (exec-path-from-shell-initialize))
-#+end_src
-** Flymake
-#+begin_src emacs-lisp
-(use-package flymake
-  :ensure nil
-  :config
-  (define-key evil-normal-state-map (kbd "C-j") 'flymake-goto-next-error)
-  (define-key evil-normal-state-map (kbd "C-k") 'flymake-goto-prev-error))
-#+end_src
-** Kubed
-#+begin_src emacs-lisp
-(use-package kubed
-  :bind (("C-c k" . kubed-prefix-map)
-         :map kubed-prefix-map
-         ("k" . kubed-transient)))
-#+end_src
 * Programming Modes
 ** Language Independent Settings
 *** Parens
@@ -374,11 +305,14 @@ Moves the custom file into a temp file, effectively making it session local
   (add-to-list 'eglot-server-programs '(mhtml-mode . ("html-languageserver" "--stdio")))
   (add-to-list 'eglot-server-programs '(css-mode . ("css-languageserver" "--stdio"))))
 #+end_src
-** Fsharp
+
+** Rust
 #+begin_src emacs-lisp
-(use-package fsharp-mode
-  :disabled t)
+(use-package rust-mode
+  :mode ("\\.rs\\'" . rust-mode)
+  :ensure t)
 #+end_src
+
 ** Python
 #+begin_src emacs-lisp
 (use-package python-mode
@@ -489,16 +423,34 @@ Moves the custom file into a temp file, effectively making it session local
     :config
     (envrc-global-mode)))
 #+end_src
-** Ansible
+** Vterm
 #+begin_src emacs-lisp
-(use-package ansible)
+(use-package vterm)
+#+end_src
+** Magit
+#+begin_src emacs-lisp
+(use-package magit
+  :bind ("C-c g" . magit-status))
 #+end_src
 * Org Mode
 
 #+BEGIN_SRC emacs-lisp
+(use-package org-publish-rss
+  :vc (:url "https://git.sr.ht/~taingram/org-publish-rss"
+       :rev :newest))
+
 (use-package org
   :mode ("\\.org" . org-mode)
-  :custom (org-plantuml-exec-mode 'plantuml)
+  :custom
+  (org-plantuml-exec-mode 'plantuml)
+  (org-html-home/up-format
+     "<div id=\"org-div-home-and-up\">
+      <a accesskey=\"h\" href=\"%s\"> UP </a>
+      |
+      <a accesskey=\"H\" href=\"%s\"> HOME </a>
+      |
+      <a accesskey=\"H\" href=\"https:\/\/neosloth.dev\/blog\/rss.xml\"> RSS </a>
+     </div>")
   :defer t
   :config
   (setq org-src-preserve-indentation nil
@@ -534,7 +486,6 @@ Moves the custom file into a temp file, effectively making it session local
   ;; Org-publish config
   (setq org-html-validation-link nil)
   (add-hook 'org-mode-hook 'org-toggle-pretty-entities)
-  (add-hook 'org-mode-hook 'org-superstar-mode)
   (add-hook 'org-mode-hook 'org-indent-mode)
   (add-hook 'org-mode-hook 'visual-line-mode)
 
@@ -546,7 +497,6 @@ Moves the custom file into a temp file, effectively making it session local
      (java . t)
      (haskell . t)
      (calc . t)
-     (tcl . t)
      (plantuml . t)
      (lisp . t)
      (shell . t)
@@ -558,30 +508,17 @@ Moves the custom file into a temp file, effectively making it session local
   (defvar neo-title "neosloth.dev"
     "The title of this site.")
 
-
-  (defun neo-postamble (plist)
-    (format
-     "<a id=\"sticky_arrow\" href=\"#top\">Top</a>
-  <footer>
-    <p>This site was generated using <a href=\"https://orgmode.org/\">org mode</a> on <em>%s</em></p>
-  </footer>" (current-time-string)))
-
   (setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
-
-  (defun neo/org-rss-publish-to-rss (plist filename pub-dir)
-    "Publish RSS with PLIST, only when FILENAME is 'rss.org'.
-PUB-DIR is when the output will be placed."
-    (if (equal "rss.org" (file-name-nondirectory filename))
-        (org-rss-publish-to-rss plist filename pub-dir)))
 
   (setq org-publish-project-alist
         (list
          (list "org-content"
                :author "neosloth"
                ;; Location of org files
-               :base-directory "~/Documents/Sync/Notes/website/content/"
+               :base-directory "~/Sync/Notes/website/content/"
                :base-extension "org"
-               :publishing-directory "~/publish/"
+               :html-link-home "https://neosloth.dev/"
+               :publishing-directory "~/Sync/publish"
                :auto-sitemap nil
                :html-postamble 'neo-postamble
                :html-html5-fancy t
@@ -592,28 +529,38 @@ PUB-DIR is when the output will be placed."
                )
 
          (list "org-static"
-               :base-directory "~/Documents/Sync/Notes/website/static/"
+               :base-directory "~/Sync/Notes/website/static"
                :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|dec\\|m4a\\|ico\\|html\\|txt"
-               :publishing-directory "~/publish/"
+               :publishing-directory "~/Sync/publish"
                :recursive t
                :publishing-function 'org-publish-attachment
                :email ""
                )
 
          (list "org-blog"
-           :base-directory "~/Documents/Sync/Notes/website/blog"
+           :base-directory "~/Sync/Notes/website/blog"
            :base-extension "org"
-           :html-link-home "blog.neosloth.dev"
-           :html-link-use-abs-url t
-           :rss-extension "xml"
-           :publishing-directory "~/publish/"
-           :publishing-function 'org-rss-publish-to-rss
-           :section-numbers nil
-           :exclude ".*"
-           :include '("index.org")
-           :table-of-contents nil)
+           :html-link-home "https://neosloth.dev/"
+           :publishing-directory "~/Sync/publish/blog"
+           :publishing-function 'org-html-publish-to-html
+           :auto-sitemap t
+           :sitemap-sort-files 'anti-chronologically
+           :sitemap-filename "index.org"
+           :auto-rss t
+           :rss-title "Neo's Slop"
+           :rss-description "My blog"
+           :rss-with-content 'all
+           :completion-function 'org-publish-rss)
 
-         (list "website" :components (list "org-content" "org-static" "org-blog")))))
+         (list "org-rss"
+               :base-directory "~/Sync/Notes/website/blog"
+               :base-extension "xml"
+               :publishing-directory "~/Sync/publish/blog"
+               :recursive nil
+               :publishing-function 'org-publish-attachment
+               :email "")
+
+         (list "website" :components (list "org-content" "org-static" "org-blog" "org-rss")))))
 #+END_SRC
 
 
@@ -622,7 +569,7 @@ PUB-DIR is when the output will be placed."
 (use-package org-roam
   :ensure t
   :custom
-  (org-roam-directory (file-truename "~/Documents/Sync/Notes/roam"))
+  (org-roam-directory (file-truename "~/Sync/Notes/roam"))
   :bind (("C-c n l" . org-roam-buffer-toggle)
          ("C-c n f" . org-roam-node-find)
          ("C-c n g" . org-roam-graph)
