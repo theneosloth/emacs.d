@@ -57,9 +57,16 @@ Make sure that use-package is installed and that ensure is always on so that use
 (use-package emacs
   :ensure nil
   :custom
+  (redisplay-skip-fontification-on-input t)
+  (read-process-output-max (* 4 1024 1024))
+  (ffap-machine-p-known 'reject)
+  (help-window-select t)
   (enable-recursive-minibuffers t)
   (ibuffer-human-readable-size t))
 #+end_src
+
+#+RESULTS:
+
 ** Custom Keybinds
 #+BEGIN_SRC emacs-lisp
 ;;Replace the default switch buffer key with the smarter ibuffer window
@@ -67,7 +74,7 @@ Make sure that use-package is installed and that ensure is always on so that use
 
 (global-set-key (kbd "C-c w") 'whitespace-mode)
 
-(global-set-key (kbd "C-c c") 'quick-calc)
+(global-set-key (kbd "C-c c") 'calc)
 
 (global-set-key (kbd "C-c a") 'org-agenda-list)
 
@@ -106,9 +113,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 
 ;; Keep the buffer up to date with disk changes
 (global-auto-revert-mode 1)
-
-;;Speeds up process reads
-(setopt read-process-output-max (* 1024 1024)) ;; 1mb
 
 (add-hook 'prog-mode-hook 'subword-mode)
 
@@ -230,6 +234,7 @@ Moves the custom file into a temp file, effectively making it session local
   (evil-set-initial-state 'erc-mode 'emacs)
   (evil-set-initial-state 'message-mode 'emacs)
   (evil-set-initial-state 'sqlite-mode 'emacs)
+  (evil-set-initial-state 'proced-mode 'emacs)
   (global-undo-tree-mode))
 
 (use-package evil-matchit
