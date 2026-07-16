@@ -46,16 +46,18 @@ Make sure that use-package is installed and that ensure is always on so that use
 #+BEGIN_SRC emacs-lisp
 (setopt use-package-always-ensure t)
 #+END_SRC
-** Install quelpa
-#+begin_src emacs-lisp
-(use-package quelpa-use-package
-  :disabled t)
-#+end_src
 * Misc options
 ** General Emacs Config
 #+begin_src emacs-lisp
 (use-package emacs
   :ensure nil
+  :bind
+  (("C-x C-b" . ibuffer)
+   ("C-c w" . whitespace-mode)
+   ("C-c c" . calc)
+   ("C-c v" . visual-line-mode)
+   ("<f8>" . compile)
+   ("RET" . newline-and-indent))
   :custom
   (redisplay-skip-fontification-on-input t)
   (read-process-output-max (* 4 1024 1024))
@@ -67,23 +69,6 @@ Make sure that use-package is installed and that ensure is always on so that use
 
 #+RESULTS:
 
-** Custom Keybinds
-#+BEGIN_SRC emacs-lisp
-;;Replace the default switch buffer key with the smarter ibuffer window
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(global-set-key (kbd "C-c w") 'whitespace-mode)
-
-(global-set-key (kbd "C-c c") 'calc)
-
-(global-set-key (kbd "C-c a") 'org-agenda-list)
-
-(global-set-key (kbd "C-c o") 'org-capture)
-
-(global-set-key (kbd "C-c v") 'visual-line-mode)
-
-(global-set-key (kbd "<f8>") 'compile)
-#+END_SRC
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
 ;;Show current buffer name
@@ -187,7 +172,6 @@ Show all files with human readable sizes
 Moves the custom file into a temp file, effectively making it session local
 
 [[https://jamiecollinson.com/blog/my-emacs-config/][Source]]
-
 #+BEGIN_SRC emacs-lisp
 (setopt custom-file (make-temp-file "emacs-custom"))
 #+END_SRC
@@ -256,7 +240,8 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package lispyville
   :hook ((lisp-mode . lispyville-mode)
          (emacs-lisp-mode . lispyville-mode)
-         (clojure-mode . lispyville-mode))
+         (clojure-mode . lispyville-mode)
+         (scheme-mode . lispyville-mode))
   :config
   (lispyville-set-key-theme '(operators c-w additional slurp/barf-cp)))
 #+END_SRC
@@ -280,6 +265,10 @@ Moves the custom file into a temp file, effectively making it session local
 (show-paren-mode t)
 (setq show-paren-delay 0)
 (setq show-paren-style 'expression)
+(use-package electric
+  :ensure nil
+  :hook (lisp-data-mode . electric-pair-mode))
+
 #+END_SRC
 *** Whitespace
 #+BEGIN_SRC emacs-lisp
@@ -293,17 +282,56 @@ Moves the custom file into a temp file, effectively making it session local
   :commands git-gutter-mode
   :hook (prog-mode . git-gutter-mode))
 #+END_SRC
+** Eldoc
+#+begin_src emacs-lisp
+(use-package eldoc
+  :ensure nil
+  :custom
+  (eldoc-help-at-pt t)
+  (eldoc-echo-area-use-multiline-p nil)
+  (eldoc-echo-area-prefer-doc-buffer t)
+  (eldoc-documentation-strategy 'eldoc-documentation-compose)
+  :init
+  (global-eldoc-mode))
+#+end_src
+** Flyspell
+#+begin_src emacs-lisp
+(use-package flyspell
+  :ensure nil
+  :defer t
+  :config
+  (setq ispell-program-name "aspell")
+  (setq ispell-dictionary "en_US")
+  (ispell-set-spellchecker-params)
+  :hook
+  ((text-mode-hook . flyspell-mode)
+   (prog-mode-hook . flyspell-prog-mode)))
+
+#+end_src
+** Flymake
+#+begin_src emacs-lisp
+(use-package flymake
+  :ensure nil
+  :defer t
+  :hook (prog-mode-hook . flymake-mode)
+  :custom
+  (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-indicator-type 'margins))
+#+end_src
 ** Eglot
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure nil
-  :hook ((js-mode . eglot-ensure)
-                 (python-mode . eglot-ensure)
-                 (html-mode . eglot-ensure)
-                 (css-mode . eglot-ensure)
-                 (scala-mode . eglot-ensure))
+  :hook ((yaml-ts-mode . eglot-ensure)
+         (json-ts-mode . eglot-ensure)
+         (rust-ts-mode . eglot-ensure)
+         (go-ts-mode . eglot-ensure))
+  :custom
+  (eglot-autoshutdown t)
   :init
   (add-hook 'before-save-hook #'eglot-format-buffer)
+  (setq-default eglot-workspace-configuration (quote
+                                               (:gopls (:hints (:parameterNames t)))))
   :config
   ;; enable corfu
   (setq completion-category-defaults nil)
@@ -336,7 +364,6 @@ Moves the custom file into a temp file, effectively making it session local
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-
 (use-package treesit-auto
   :config
   (setq treesit-auto-install 'prompt)
@@ -352,10 +379,6 @@ Moves the custom file into a temp file, effectively making it session local
     :mode "Rakefile\\'"
     :mode "Gemfile\\'")
 
-(use-package chruby
-  :commands chruby-use-corresponding
-  :hook ((ruby-mode . chruby-use-corresponding)))
-
 (use-package inf-ruby
   :after ruby)
 #+end_src
@@ -368,10 +391,6 @@ Moves the custom file into a temp file, effectively making it session local
 ** Dockerfile
 #+begin_src emacs-lisp
 (use-package dockerfile-mode)
-#+end_src
-** Go
-#+begin_src emacs-lisp
-(use-package go-mode)
 #+end_src
 ** C-Mode
 *** Indentation
@@ -398,6 +417,10 @@ Moves the custom file into a temp file, effectively making it session local
          ("\\.markdown\\'" . markdown-mode))
   :custom (markdown-command "multimarkdown"))
 #+END_SRC
+** Typst
+#+begin_src emacs-lisp
+(use-package typst-ts-mode)
+#+end_src
 ** Sly
 #+BEGIN_SRC emacs-lisp
 (use-package sly
@@ -410,6 +433,9 @@ Moves the custom file into a temp file, effectively making it session local
   (setq sly-lisp-implementations
         '((sbcl ("sbcl") :coding-system utf-8-unix)
           (qlot ("qlot" "exec" "sbcl") :coding-system utf-8-unix))))
+
+(use-package geiser
+  :ensure geiser-guile)
 #+END_SRC
 
 ** Very Large files
@@ -423,10 +449,7 @@ Moves the custom file into a temp file, effectively making it session local
 #+end_src
 ** Direnv
 #+begin_src emacs-lisp
-(unless (eq system-type 'windows-nt)
-  (use-package envrc
-    :config
-    (envrc-global-mode)))
+(use-package direnv)
 #+end_src
 ** Vterm
 #+begin_src emacs-lisp
@@ -454,7 +477,7 @@ Moves the custom file into a temp file, effectively making it session local
       |
       <a accesskey=\"H\" href=\"%s\"> HOME </a>
       |
-      <a accesskey=\"H\" href=\"https:\/\/neosloth.dev\/blog\/rss.xml\"> RSS </a>
+      <a accesskey=\"H\" href=\"/blog\/rss.xml\"> RSS </a>
      </div>")
   :defer t
   :config
@@ -510,10 +533,17 @@ Moves the custom file into a temp file, effectively making it session local
      (C . t)
      (scheme . t)))
 
-  (defvar neo-title "neosloth.dev"
+  ;; Don't have a record for the apex domain, have to use www.
+  (defvar neo-title "www.neosloth.dev"
     "The title of this site.")
 
-  (setq neo-site-head-extra "<link rel='stylesheet' type='text/css' href='../css/style.css' />")
+  (setq neo-site-head-extra "<link rel=\"stylesheet\" type=\"text/css\" href=\"/css/style.css\" />
+<link href=\"https://www.neosloth.dev/\" rel=\"me\" />
+<link href=\"https://neosloth.dev/\" rel=\"me\" />
+<link href=\"https://codeberg.org/neosloth/\" rel=\"me\" />
+<link href=\"https://gotosocial.thewired.im/@neosloth\" rel=\"me\" />
+<link href=\"https://letterboxd.com/neosloth/\" rel=\"me\" />
+<link href=\"https://bsky.app/profile/neosloth.dev\" rel=\"me atproto\" />")
 
   (setq org-publish-project-alist
         (list
@@ -522,10 +552,12 @@ Moves the custom file into a temp file, effectively making it session local
                ;; Location of org files
                :base-directory "~/Sync/Notes/website/content/"
                :base-extension "org"
-               :html-link-home "https://neosloth.dev/"
+               :html-link-home "/"
+               :html-head-extra neo-site-head-extra
                :publishing-directory "~/Sync/publish"
                :auto-sitemap nil
-               :html-postamble 'neo-postamble
+               :with-toc nil
+               :with-sub-superscript nil
                :html-html5-fancy t
                :htmlized-source t
                :recursive t
@@ -539,21 +571,24 @@ Moves the custom file into a temp file, effectively making it session local
                :publishing-directory "~/Sync/publish"
                :recursive t
                :publishing-function 'org-publish-attachment
-               :email ""
                )
 
          (list "org-blog"
            :base-directory "~/Sync/Notes/website/blog"
            :base-extension "org"
-           :html-link-home "https://neosloth.dev/"
            :publishing-directory "~/Sync/publish/blog"
            :publishing-function 'org-html-publish-to-html
+           :author "neosloth"
+           :email ""
+           :html-head-extra neo-site-head-extra
+           :rss-link "/blog"
+           :html-link-up "/blog"
            :auto-sitemap t
            :sitemap-sort-files 'anti-chronologically
            :sitemap-filename "index.org"
            :auto-rss t
-           :rss-title "Neo's Slop"
-           :rss-description "My blog"
+           :rss-title "Neo's Blog"
+           :rss-description "Ramblings about Emacs, self-hosting and everything FOSS"
            :rss-with-content 'all
            :completion-function 'org-publish-rss)
 
@@ -563,10 +598,12 @@ Moves the custom file into a temp file, effectively making it session local
                :publishing-directory "~/Sync/publish/blog"
                :recursive nil
                :publishing-function 'org-publish-attachment
+               :author "neosloth"
                :email "")
 
          (list "website" :components (list "org-content" "org-static" "org-blog" "org-rss")))))
 #+END_SRC
+
 
 
 ** Org-roam
