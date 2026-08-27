@@ -3,6 +3,8 @@
 * Package Initialization and Installation
 ** Garbage Collection
 #+BEGIN_SRC emacs-lisp
+;; -*- lexical-binding: t; -*-
+(require 'package)
 ;; Delay garbage collection while Emacs is booting
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6)
@@ -79,7 +81,7 @@ Make sure that use-package is installed and that ensure is always on so that use
       (tool-bar-mode -1)
       (scroll-bar-mode -1)))
 
-(menu-bar-mode -1)
+(menu-bar-mode 1)
 
 ;; Always treat tabs as spaces
 (setq-default indent-tabs-mode nil)
@@ -106,6 +108,7 @@ Make sure that use-package is installed and that ensure is always on so that use
   :bind ("C-c w" . whitespace-mode)
   :hook ((prog-mode . whitespace-mode))
   :config
+  (whitespace-page-delimiters-mode)
   (setopt whitespace-style '(face tabs spaces trailing space-before-tab newline indentation empty space-after-tab space-mark tab-mark newline-mark missing-newline-at-eof)))
 #+END_SRC
 *** Easily search for non ASCII Characters
@@ -178,29 +181,98 @@ Moves the custom file into a temp file, effectively making it session local
 ** Fido
 #+begin_src emacs-lisp
 (setopt tab-always-indent 'complete)
-(setopt completion-styles '(basic flex)
-      completion-auto-select t ;; Show completion on first call
-      completion-auto-help 'visible ;; Display *Completions* upon first request
-      completions-format 'one-column ;; Use only one column
-      completions-sort 'historical ;; Order based on minibuffer history
-      completions-max-height 20 ;; Limit completions to 15 (completions start at line 5)
-      completion-ignore-case t)
+;; (setopt completion-styles '(basic flex)
+;;         completion-eager-update t
+;;         completion-eager-display 'auto
+;;         minibuffer-visible-completions 'up-down
+;;         completion-auto-select t ;; Show completion on first call
+;;         completion-auto-help 'visible ;; Display *Completions* upon first request
+;;         completions-format 'one-column ;; Use only one column
+;;         completions-sort 'historical ;; Order based on minibuffer history
+;;         completions-max-height 20 ;; Limit completions to 15 (completions start at line 5)
+;;         completion-ignore-case t)
 
 
-(setopt read-buffer-completion-ignore-case t)
-(setopt read-file-name-completion-ignore-case t)
-(fido-vertical-mode)
+;; (setopt read-buffer-completion-ignore-case t)
+;; (setopt read-file-name-completion-ignore-case t)
 
-(add-hook 'prog-mode-hook #'completion-preview-mode)
-(add-hook 'text-mode-hook #'completion-preview-mode)
-(add-hook 'rcirc-mode-hook #'completion-preview-mode)
-(add-hook 'erc-mode-hook #'completion-preview-mode)
+;; (use-package icomplete
+;;   :bind (:map icomplete-minibuffer-map
+;;               ("C-n" . icomplete-forward-completions)
+;;               ("C-p" . icomplete-backward-completions)
+;;               ("RET" . icomplete-force-complete-and-exit))
+;;   :hook
+;;   (after-init . (lambda ()
+;;                   (icomplete-vertical-mode 1)))
+;;   :config
+;;   (setopt icomplete-vertical-in-buffer-adjust-list t)
+;;   (setopt icomplete-vertical-render-prefix-indicator t)
+;;   (setq icomplete-delay-completions-threshold 0)
+;;   (setq icomplete-compute-delay 0)
+;;   (setq icomplete-show-matches-on-no-input t)
+;;   (setq icomplete-hide-common-prefix nil)
+;;   (setq icomplete-prospects-height 10)
+;;   (setq icomplete-in-buffer t)
+;;   (setq icomplete-max-delay-chars 0)
+;;   (setq icomplete-scroll t))
 
-(use-package completion-preview
+;; (add-hook 'prog-mode-hook #'completion-preview-mode)
+;; (add-hook 'text-mode-hook #'completion-preview-mode)
+;; (add-hook 'rcirc-mode-hook #'completion-preview-mode)
+;; (add-hook 'erc-mode-hook #'completion-preview-mode)
+
+;; Vertico: better vertical completion for minibuffer commands
+(use-package vertico
+  :ensure t
+  :init
+  ;; You'll want to make sure that e.g. fido-mode isn't enabled
+  (vertico-mode))
+
+(use-package vertico-directory
   :ensure nil
-  :custom (completion-preview-exact-match-only t)
-  :hook ((prog-mode . completion-preview-mode)
-         (text-mode . completion-preview-mode)))
+  :after vertico
+  :bind (:map vertico-map
+              ("M-DEL" . vertico-directory-delete-word)))
+
+;; Marginalia: annotations for minibuffer
+(use-package marginalia
+  :ensure t
+  :config
+  (marginalia-mode))
+
+;; Corfu: Popup completion-at-point
+(use-package corfu
+  :ensure t
+  :init
+  (global-corfu-mode)
+  :bind
+  (:map corfu-map
+        ("SPC" . corfu-insert-separator)
+        ("C-n" . corfu-next)
+        ("C-p" . corfu-previous)))
+
+;; Part of corfu
+(use-package corfu-popupinfo
+  :after corfu
+  :ensure nil
+  :hook (corfu-mode . corfu-popupinfo-mode)
+  :custom
+  (corfu-popupinfo-delay '(0.25 . 0.1))
+  (corfu-popupinfo-hide nil)
+  :config
+  (corfu-popupinfo-mode))
+
+;; Make corfu popup come up in terminal overlay
+(use-package corfu-terminal
+  :if (not (display-graphic-p))
+  :ensure t
+  :config
+  (corfu-terminal-mode))
+
+(use-package orderless
+  :ensure t
+  :config
+  (setq completion-styles '(orderless)))
 #+end_src
 * Custom Packages
 ** Evil
@@ -315,7 +387,7 @@ Moves the custom file into a temp file, effectively making it session local
   :defer t
   :hook (prog-mode-hook . flymake-mode)
   :custom
-  (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-show-diagnostics-at-end-of-line 'fancy)
   (flymake-indicator-type 'margins))
 #+end_src
 ** Eglot
@@ -328,6 +400,7 @@ Moves the custom file into a temp file, effectively making it session local
          (go-ts-mode . eglot-ensure))
   :custom
   (eglot-autoshutdown t)
+  (eglot-documentation-renderer 'markdown-ts-view-mode)
   :init
   (add-hook 'before-save-hook #'eglot-format-buffer)
   (setq-default eglot-workspace-configuration (quote
@@ -360,17 +433,21 @@ Moves the custom file into a temp file, effectively making it session local
 #+begin_src emacs-lisp
 (use-package tree-sitter
   :ensure nil
+  :custom
+  (treesit-auto-install-grammar 'always)
+  (treesit-enabled-modes t)
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-(use-package treesit-auto
-  :config
-  (setq treesit-auto-install 'prompt)
-  (global-treesit-auto-mode))
-
 (use-package tree-sitter-indent
   :after tree-sitter)
+
+(use-package markdown-ts-mode
+  :ensure nil
+  :mode ("\\.md\\'" "\\.mdx\\'" "\\.markdown\\'")
+  :config
+  (require 'markdown-ts-mode-x))
 #+end_src
 ** Ruby
 #+begin_src emacs-lisp
@@ -408,15 +485,6 @@ Moves the custom file into a temp file, effectively making it session local
 (add-to-list 'auto-mode-alist
              '("\\.ts\\'" . js-mode))
 #+end_src
-** Markdown
-#+BEGIN_SRC emacs-lisp
-(use-package markdown-mode
-  :commands (markdown-mode gfm-mode)
-  :mode (("README\\.md\\'" . gfm-mode)
-         ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :custom (markdown-command "multimarkdown"))
-#+END_SRC
 ** Typst
 #+begin_src emacs-lisp
 (use-package typst-ts-mode)
