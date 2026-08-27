@@ -245,11 +245,15 @@ Moves the custom file into a temp file, effectively making it session local
   :ensure t
   :init
   (global-corfu-mode)
+  :custom
+  (corfu-cycle t)
+  (corfu-preselect 'prompt)
   :bind
   (:map corfu-map
-        ("SPC" . corfu-insert-separator)
-        ("C-n" . corfu-next)
-        ("C-p" . corfu-previous)))
+        ("TAB" . corfu-next)
+        ([tab] . corfu-next)
+        ("S-TAB" . corfu-previous)
+        ([backtab] . corfu-previous)))
 
 ;; Part of corfu
 (use-package corfu-popupinfo
@@ -284,6 +288,7 @@ Moves the custom file into a temp file, effectively making it session local
   :init
   (setq undo-tree-auto-save-history nil)
   (setq evil-undo-system 'undo-tree)
+  (setq evil-respect-visual-line-mode t)
   :config
   (evil-mode 1)
   ;;Disable evil in these modes
