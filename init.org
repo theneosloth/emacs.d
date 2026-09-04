@@ -66,10 +66,17 @@ Make sure that use-package is installed and that ensure is always on so that use
   (ffap-machine-p-known 'reject)
   (help-window-select t)
   (enable-recursive-minibuffers t)
-  (ibuffer-human-readable-size t))
+  (ibuffer-human-readable-size t)
+  :config
+  (setq major-mode-remap-alist
+        '((bash-mode . bash-ts-mode)
+          (js2-mode . js-ts-mode)
+          (typescript-mode . typescript-ts-mode)
+          (json-mode . json-ts-mode)
+          (css-mode . css-ts-mode)
+          (python-mode . python-ts-mode))))
 #+end_src
 
-#+RESULTS:
 
 ** Random Quality of Life Things
 #+BEGIN_SRC emacs-lisp
@@ -181,45 +188,6 @@ Moves the custom file into a temp file, effectively making it session local
 ** Fido
 #+begin_src emacs-lisp
 (setopt tab-always-indent 'complete)
-;; (setopt completion-styles '(basic flex)
-;;         completion-eager-update t
-;;         completion-eager-display 'auto
-;;         minibuffer-visible-completions 'up-down
-;;         completion-auto-select t ;; Show completion on first call
-;;         completion-auto-help 'visible ;; Display *Completions* upon first request
-;;         completions-format 'one-column ;; Use only one column
-;;         completions-sort 'historical ;; Order based on minibuffer history
-;;         completions-max-height 20 ;; Limit completions to 15 (completions start at line 5)
-;;         completion-ignore-case t)
-
-
-;; (setopt read-buffer-completion-ignore-case t)
-;; (setopt read-file-name-completion-ignore-case t)
-
-;; (use-package icomplete
-;;   :bind (:map icomplete-minibuffer-map
-;;               ("C-n" . icomplete-forward-completions)
-;;               ("C-p" . icomplete-backward-completions)
-;;               ("RET" . icomplete-force-complete-and-exit))
-;;   :hook
-;;   (after-init . (lambda ()
-;;                   (icomplete-vertical-mode 1)))
-;;   :config
-;;   (setopt icomplete-vertical-in-buffer-adjust-list t)
-;;   (setopt icomplete-vertical-render-prefix-indicator t)
-;;   (setq icomplete-delay-completions-threshold 0)
-;;   (setq icomplete-compute-delay 0)
-;;   (setq icomplete-show-matches-on-no-input t)
-;;   (setq icomplete-hide-common-prefix nil)
-;;   (setq icomplete-prospects-height 10)
-;;   (setq icomplete-in-buffer t)
-;;   (setq icomplete-max-delay-chars 0)
-;;   (setq icomplete-scroll t))
-
-;; (add-hook 'prog-mode-hook #'completion-preview-mode)
-;; (add-hook 'text-mode-hook #'completion-preview-mode)
-;; (add-hook 'rcirc-mode-hook #'completion-preview-mode)
-;; (add-hook 'erc-mode-hook #'completion-preview-mode)
 
 ;; Vertico: better vertical completion for minibuffer commands
 (use-package vertico
@@ -228,10 +196,14 @@ Moves the custom file into a temp file, effectively making it session local
   ;; You'll want to make sure that e.g. fido-mode isn't enabled
   (vertico-mode))
 
+;; Configure directory extension.
 (use-package vertico-directory
-  :ensure nil
   :after vertico
+  :ensure nil
+  ;; More convenient directory navigation commands
   :bind (:map vertico-map
+              ("RET" . vertico-directory-enter)
+              ("DEL" . vertico-directory-delete-char)
               ("M-DEL" . vertico-directory-delete-word)))
 
 ;; Marginalia: annotations for minibuffer
@@ -265,13 +237,6 @@ Moves the custom file into a temp file, effectively making it session local
   (corfu-popupinfo-hide nil)
   :config
   (corfu-popupinfo-mode))
-
-;; Make corfu popup come up in terminal overlay
-(use-package corfu-terminal
-  :if (not (display-graphic-p))
-  :ensure t
-  :config
-  (corfu-terminal-mode))
 
 (use-package orderless
   :ensure t
@@ -345,7 +310,6 @@ Moves the custom file into a temp file, effectively making it session local
 (use-package electric
   :ensure nil
   :hook (lisp-data-mode . electric-pair-mode))
-
 #+END_SRC
 *** Whitespace
 #+BEGIN_SRC emacs-lisp
@@ -383,7 +347,6 @@ Moves the custom file into a temp file, effectively making it session local
   :hook
   ((text-mode-hook . flyspell-mode)
    (prog-mode-hook . flyspell-prog-mode)))
-
 #+end_src
 ** Flymake
 #+begin_src emacs-lisp
@@ -393,7 +356,7 @@ Moves the custom file into a temp file, effectively making it session local
   :hook (prog-mode-hook . flymake-mode)
   :custom
   (flymake-show-diagnostics-at-end-of-line 'fancy)
-  (flymake-indicator-type 'margins))
+  (flymake-indicator-type 'auto))
 #+end_src
 ** Eglot
 #+begin_src emacs-lisp
@@ -426,28 +389,12 @@ Moves the custom file into a temp file, effectively making it session local
 
 ** Python
 #+begin_src emacs-lisp
-(use-package python-mode
-  :mode ("\\.py\\'" . python-mode)
-  :ensure t)
-
 (use-package pyvenv-auto
   :hook ((python-mode . pyvenv-auto-run)))
 #+end_src
 
 ** Tree Sitter
 #+begin_src emacs-lisp
-(use-package tree-sitter
-  :ensure nil
-  :custom
-  (treesit-auto-install-grammar 'always)
-  (treesit-enabled-modes t)
-  :config
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-
-(use-package tree-sitter-indent
-  :after tree-sitter)
-
 (use-package markdown-ts-mode
   :ensure nil
   :mode ("\\.md\\'" "\\.mdx\\'" "\\.markdown\\'")
